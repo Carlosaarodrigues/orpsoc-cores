@@ -23,8 +23,27 @@ include_files =
  bench/verilog/wb_intercon.vh
 
 [verilator]
+source_type = systemC
 verilator_options = -Wno-fatal --trace
+<<<<<<< HEAD
 source_type = C
 src_files     = bench/verilator/or1k-elf-loader.c
 include_files = bench/verilator/or1k-elf-loader.h
 tb_toplevel   = bench/verilator/tb.cpp
+=======
+src_files = 
+ bench/verilator/OrpsocAccess.cpp
+ bench/verilator/MemoryLoad.cpp
+ bench/verilator/Or1200MonitorSC.cpp
+ bench/verilator/ResetSC.cpp
+include_files = 
+ bench/verilator/OrpsocMain.h
+ bench/verilator/OrpsocAccess.h
+ bench/verilator/MemoryLoad.h
+ bench/verilator/coff.h
+ bench/verilator/ResetSC.h
+ bench/verilator/Or1200MonitorSC.h
+ bench/verilator/elf.h
+ bench/verilator/UartSC.h
+tb_toplevel   = bench/verilator/OrpsocMain.cpp
+>>>>>>> systemc
