@@ -25,12 +25,6 @@ include_files =
 [verilator]
 source_type = systemC
 verilator_options = -Wno-fatal --trace
-<<<<<<< HEAD
-source_type = C
-src_files     = bench/verilator/or1k-elf-loader.c
-include_files = bench/verilator/or1k-elf-loader.h
-tb_toplevel   = bench/verilator/tb.cpp
-=======
 src_files = 
  bench/verilator/OrpsocAccess.cpp
  bench/verilator/MemoryLoad.cpp
@@ -46,4 +40,3 @@ include_files =
  bench/verilator/elf.h
  bench/verilator/UartSC.h
 tb_toplevel   = bench/verilator/OrpsocMain.cpp
->>>>>>> systemc
