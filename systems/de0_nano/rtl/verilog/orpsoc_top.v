@@ -114,6 +114,10 @@ module orpsoc_top #(
 );
 
 parameter	IDCODE_VALUE=32'h14951185;
+   localparam wb_aw = 32;
+   localparam wb_dw = 32;
+
+   localparam MEM_SIZE_BITS = 23;
 
 // choose I2C operation mode
 assign accelerometer_cs_o = 1;
@@ -124,6 +128,9 @@ assign accelerometer_cs_o = 1;
 //
 ////////////////////////////////////////////////////////////////////////
 
+wire	wb_clk = sys_clk_pad_i; 
+wire 	wb_rst = rst_n_pad_i;
+/*
 wire	async_rst;
 wire	wb_clk, wb_rst;
 wire	dbg_tck;
@@ -145,7 +152,7 @@ clkgen clkgen0 (
 	.sdram_clk_o	(sdram_clk),
 	.sdram_rst_o	(sdram_rst)
 );
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //
 // Modules interconnections
@@ -195,13 +202,14 @@ tap_top jtag_tap0 (
 	.debug_tdi_i			(dbg_if_tdo)
 );
 
+
 `elsif ALTERA_JTAG_TAP
 ////////////////////////////////////////////////////////////////////////
 //
 // ALTERA Virtual JTAG TAP
 //
 ////////////////////////////////////////////////////////////////////////
-
+/*
 wire	dbg_if_select;
 wire	dbg_if_tdo;
 wire	jtag_tap_tdo;
@@ -222,6 +230,7 @@ altera_virtual_jtag jtag_tap0 (
 	.update_dr_o		(jtag_tap_update_dr),
 	.debug_select_o		(dbg_if_select)
 );
+*/
 `endif
 
 ////////////////////////////////////////////////////////////////////////
@@ -469,12 +478,46 @@ assign	wb_s2m_rom0_dat_o = 0;
 assign	wb_s2m_rom0_ack_o = 0;
 `endif
 
+
+////////////////////////////////////////////////////////////////////////
+//
+// Generic main RAM
+// 
+////////////////////////////////////////////////////////////////////////
+
+assign	wb_s2m_sdram_ibus_err = 0;
+assign	wb_s2m_sdram_ibus_rty = 0;
+
+assign	wb_s2m_sdram_dbus_err = 0;
+assign	wb_s2m_sdram_dbus_rty = 0;
+
+ram_wb_b3 #(
+//wb_bfm_memory #(.DEBUG (0),
+     .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
+     .mem_adr_width (MEM_SIZE_BITS))
+wb_bfm_memory0
+  (
+   //Wishbone Master interface
+   .wb_clk_i (wb_clk),
+   .wb_rst_i (wb_rst),
+   .wb_adr_i	({wb_m2s_sdram_ibus_adr& (2**MEM_SIZE_BITS-1), wb_m2s_sdram_dbus_adr& (2**MEM_SIZE_BITS-1)} ),
+   .wb_dat_i	({wb_m2s_sdram_ibus_dat, wb_m2s_sdram_dbus_dat}),
+   .wb_sel_i	({wb_m2s_sdram_ibus_sel, wb_m2s_sdram_dbus_sel}),
+   .wb_we_i	({wb_m2s_sdram_ibus_we,  wb_m2s_sdram_dbus_we }),
+   .wb_cyc_i	({wb_m2s_sdram_ibus_cyc, wb_m2s_sdram_dbus_cyc}),
+   .wb_stb_i	({wb_m2s_sdram_ibus_stb, wb_m2s_sdram_dbus_stb}),
+   .wb_cti_i	({wb_m2s_sdram_ibus_cti, wb_m2s_sdram_dbus_cti}),
+   .wb_bte_i	({wb_m2s_sdram_ibus_bte, wb_m2s_sdram_dbus_bte}),
+   .wb_dat_o	({wb_s2m_sdram_ibus_dat, wb_s2m_sdram_dbus_dat}),
+   .wb_ack_o	({wb_s2m_sdram_ibus_ack, wb_s2m_sdram_dbus_ack}));
+
+  
 ////////////////////////////////////////////////////////////////////////
 //
 // SDRAM Memory Controller
 //
 ////////////////////////////////////////////////////////////////////////
-
+/*
 wire	[15:0]	sdram_dq_i;
 wire	[15:0]	sdram_dq_o;
 wire		sdram_dq_oe;
@@ -536,7 +579,7 @@ wb_sdram_ctrl0 (
 	.wb_dat_o	({wb_s2m_sdram_ibus_dat, wb_s2m_sdram_dbus_dat}),
 	.wb_ack_o	({wb_s2m_sdram_ibus_ack, wb_s2m_sdram_dbus_ack})
 );
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //
 // UART0
@@ -823,7 +866,7 @@ assign wb8_s2m_i2c1_rty = 0;
 
 ////////////////////////////////////////////////////////////////////////
 `endif // !`ifdef I2C1
-
+/*
 `ifdef SPI0
 ////////////////////////////////////////////////////////////////////////
 //
@@ -1087,7 +1130,7 @@ wb_data_resize wb_data_resize_spi2 (
 	.wbs_rty_i	(wb8_s2m_spi2_rty)
 );
 `endif
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //
 // GPIO 0
