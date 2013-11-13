@@ -485,31 +485,27 @@ assign	wb_s2m_rom0_ack_o = 0;
 // 
 ////////////////////////////////////////////////////////////////////////
 
-assign	wb_s2m_sdram_ibus_err = 0;
-assign	wb_s2m_sdram_ibus_rty = 0;
-
-assign	wb_s2m_sdram_dbus_err = 0;
-assign	wb_s2m_sdram_dbus_rty = 0;
-
 ram_wb_b3 #(
 //wb_bfm_memory #(.DEBUG (0),
      .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
      .mem_adr_width (MEM_SIZE_BITS))
-wb_bfm_memory0
+wb_sdram_ctrl0
   (
    //Wishbone Master interface
-   .wb_clk_i (wb_clk),
-   .wb_rst_i (wb_rst),
-   .wb_adr_i	({wb_m2s_sdram_ibus_adr& (2**MEM_SIZE_BITS-1), wb_m2s_sdram_dbus_adr& (2**MEM_SIZE_BITS-1)} ),
-   .wb_dat_i	({wb_m2s_sdram_ibus_dat, wb_m2s_sdram_dbus_dat}),
-   .wb_sel_i	({wb_m2s_sdram_ibus_sel, wb_m2s_sdram_dbus_sel}),
-   .wb_we_i	({wb_m2s_sdram_ibus_we,  wb_m2s_sdram_dbus_we }),
-   .wb_cyc_i	({wb_m2s_sdram_ibus_cyc, wb_m2s_sdram_dbus_cyc}),
-   .wb_stb_i	({wb_m2s_sdram_ibus_stb, wb_m2s_sdram_dbus_stb}),
-   .wb_cti_i	({wb_m2s_sdram_ibus_cti, wb_m2s_sdram_dbus_cti}),
-   .wb_bte_i	({wb_m2s_sdram_ibus_bte, wb_m2s_sdram_dbus_bte}),
-   .wb_dat_o	({wb_s2m_sdram_ibus_dat, wb_s2m_sdram_dbus_dat}),
-   .wb_ack_o	({wb_s2m_sdram_ibus_ack, wb_s2m_sdram_dbus_ack}));
+   .wb_clk_i 	(wb_clk),
+   .wb_rst_i 	(wb_rst),
+   .wb_adr_i	(wb_m2s_sdram_adr & (2**MEM_SIZE_BITS-1)),
+   .wb_dat_i	(wb_m2s_sdram_dat),
+   .wb_sel_i	(wb_m2s_sdram_sel),
+   .wb_we_i	(wb_m2s_sdram_we),
+   .wb_cyc_i	(wb_m2s_sdram_cyc),
+   .wb_stb_i	(wb_m2s_sdram_stb),
+   .wb_cti_i	(wb_m2s_sdram_cti),
+   .wb_bte_i	(wb_m2s_sdram_bte),
+   .wb_dat_o	(wb_s2m_sdram_dat),
+   .wb_ack_o	(wb_s2m_sdram_ack),
+   .wb_err_o    (wb_s2m_sdram_err),
+   .wb_rty_o    (wb_s2m_sdram_rty));
 
   
 ////////////////////////////////////////////////////////////////////////
@@ -866,7 +862,7 @@ assign wb8_s2m_i2c1_rty = 0;
 
 ////////////////////////////////////////////////////////////////////////
 `endif // !`ifdef I2C1
-/*
+
 `ifdef SPI0
 ////////////////////////////////////////////////////////////////////////
 //
@@ -1130,7 +1126,7 @@ wb_data_resize wb_data_resize_spi2 (
 	.wbs_rty_i	(wb8_s2m_spi2_rty)
 );
 `endif
-*/
+
 ////////////////////////////////////////////////////////////////////////
 //
 // GPIO 0

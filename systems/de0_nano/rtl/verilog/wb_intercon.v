@@ -85,18 +85,6 @@ module wb_intercon
     input         wb_rom0_ack_i,
     input         wb_rom0_err_i,
     input         wb_rom0_rty_i,
-    output [31:0] wb_sdram_dbus_adr_o,
-    output [31:0] wb_sdram_dbus_dat_o,
-    output  [3:0] wb_sdram_dbus_sel_o,
-    output        wb_sdram_dbus_we_o,
-    output        wb_sdram_dbus_cyc_o,
-    output        wb_sdram_dbus_stb_o,
-    output  [2:0] wb_sdram_dbus_cti_o,
-    output  [1:0] wb_sdram_dbus_bte_o,
-    input  [31:0] wb_sdram_dbus_dat_i,
-    input         wb_sdram_dbus_ack_i,
-    input         wb_sdram_dbus_err_i,
-    input         wb_sdram_dbus_rty_i,
     output [31:0] wb_spi0_adr_o,
     output [31:0] wb_spi0_dat_o,
     output  [3:0] wb_spi0_sel_o,
@@ -121,18 +109,19 @@ module wb_intercon
     input         wb_uart0_ack_i,
     input         wb_uart0_err_i,
     input         wb_uart0_rty_i,
-    output [31:0] wb_sdram_ibus_adr_o,
-    output [31:0] wb_sdram_ibus_dat_o,
-    output  [3:0] wb_sdram_ibus_sel_o,
-    output        wb_sdram_ibus_we_o,
-    output        wb_sdram_ibus_cyc_o,
-    output        wb_sdram_ibus_stb_o,
-    output  [2:0] wb_sdram_ibus_cti_o,
-    output  [1:0] wb_sdram_ibus_bte_o,
-    input  [31:0] wb_sdram_ibus_dat_i,
-    input         wb_sdram_ibus_ack_i,
-    input         wb_sdram_ibus_err_i,
-    input         wb_sdram_ibus_rty_i,
+    //input and output RAM wb_sdram_ctrl0
+    output [31:0] wb_mem_adr_o,
+    output [31:0] wb_mem_dat_o,
+    output  [3:0] wb_mem_sel_o,
+    output        wb_mem_we_o,
+    output        wb_mem_cyc_o,
+    output        wb_mem_stb_o,
+    output  [2:0] wb_mem_cti_o,
+    output  [1:0] wb_mem_bte_o,
+    input  [31:0] wb_mem_dat_i,
+    input         wb_mem_ack_i,
+    input         wb_mem_err_i,
+    input         wb_mem_rty_i,
     output [31:0] wb_i2c0_adr_o,
     output [31:0] wb_i2c0_dat_o,
     output  [3:0] wb_i2c0_sel_o,
@@ -158,6 +147,31 @@ module wb_intercon
     input         wb_i2c1_err_i,
     input         wb_i2c1_rty_i);
 
+//RAM wb_sdram_ctrl0
+wire [31:0] wb_sdram_dbus_adr_o;
+wire [31:0] wb_sdram_dbus_dat_o;
+wire  [3:0] wb_sdram_dbus_sel_o;
+wire        wb_sdram_dbus_we_o;
+wire        wb_sdram_dbus_cyc_o;
+wire        wb_sdram_dbus_stb_o;
+wire  [2:0] wb_sdram_dbus_cti_o;
+wire  [1:0] wb_sdram_dbus_bte_o;
+wire [31:0] wb_sdram_dbus_dat_i;
+wire        wb_sdram_dbus_ack_i;
+wire        wb_sdram_dbus_err_i;
+wire        wb_sdram_dbus_rty_i;
+wire [31:0] wb_sdram_ibus_adr_o;
+wire [31:0] wb_sdram_ibus_dat_o;
+wire  [3:0] wb_sdram_ibus_sel_o;
+wire        wb_sdram_ibus_we_o;
+wire        wb_sdram_ibus_cyc_o;
+wire        wb_sdram_ibus_stb_o;
+wire  [2:0] wb_sdram_ibus_cti_o;
+wire  [1:0] wb_sdram_ibus_bte_o;
+wire [31:0] wb_sdram_ibus_dat_i;
+wire        wb_sdram_ibus_ack_i;
+wire        wb_sdram_ibus_err_i;
+wire        wb_sdram_ibus_rty_i;
 wire [31:0] wb_m2s_or1k_d_sdram_dbus_adr;
 wire [31:0] wb_m2s_or1k_d_sdram_dbus_dat;
 wire  [3:0] wb_m2s_or1k_d_sdram_dbus_sel;
@@ -373,7 +387,7 @@ wb_mux
     .wbs_adr_o ({wb_sdram_ibus_adr_o, wb_rom0_adr_o}),
     .wbs_dat_o ({wb_sdram_ibus_dat_o, wb_rom0_dat_o}),
     .wbs_sel_o ({wb_sdram_ibus_sel_o, wb_rom0_sel_o}),
-    .wbs_we_o  ({wb_sdram_ibus_we_o, wb_rom0_we_o}),
+    .wbs_we_o  ({wb_sdram_ibus_we_o,  wb_rom0_we_o}),
     .wbs_cyc_o ({wb_sdram_ibus_cyc_o, wb_rom0_cyc_o}),
     .wbs_stb_o ({wb_sdram_ibus_stb_o, wb_rom0_stb_o}),
     .wbs_cti_o ({wb_sdram_ibus_cti_o, wb_rom0_cti_o}),
@@ -446,6 +460,36 @@ wb_mux
     .wbs_ack_i ({wb_s2m_dbg_sdram_dbus_ack, wb_s2m_dbg_uart0_ack, wb_s2m_dbg_gpio0_ack, wb_s2m_dbg_i2c0_ack, wb_s2m_dbg_i2c1_ack, wb_s2m_dbg_spi0_ack, wb_s2m_dbg_spi1_ack, wb_s2m_dbg_spi2_ack}),
     .wbs_err_i ({wb_s2m_dbg_sdram_dbus_err, wb_s2m_dbg_uart0_err, wb_s2m_dbg_gpio0_err, wb_s2m_dbg_i2c0_err, wb_s2m_dbg_i2c1_err, wb_s2m_dbg_spi0_err, wb_s2m_dbg_spi1_err, wb_s2m_dbg_spi2_err}),
     .wbs_rty_i ({wb_s2m_dbg_sdram_dbus_rty, wb_s2m_dbg_uart0_rty, wb_s2m_dbg_gpio0_rty, wb_s2m_dbg_i2c0_rty, wb_s2m_dbg_i2c1_rty, wb_s2m_dbg_spi0_rty, wb_s2m_dbg_spi1_rty, wb_s2m_dbg_spi2_rty}));
+
+wb_arbiter
+  #(.num_masters (2))
+ wb_arbiter_mem
+   (.wb_clk_i  (wb_clk_i),
+    .wb_rst_i  (wb_rst_i),
+    .wbm_adr_i ({wb_sdram_dbus_adr_o, wb_sdram_ibus_adr_o}),
+    .wbm_dat_i ({wb_sdram_dbus_dat_o, wb_sdram_ibus_dat_o}),
+    .wbm_sel_i ({wb_sdram_dbus_sel_o, wb_sdram_ibus_sel_o}),
+    .wbm_we_i  ({wb_sdram_dbus_we_o,  wb_sdram_ibus_we_o}),
+    .wbm_cyc_i ({wb_sdram_dbus_cyc_o, wb_sdram_ibus_cyc_o}),
+    .wbm_stb_i ({wb_sdram_dbus_stb_o, wb_sdram_ibus_stb_o}),
+    .wbm_cti_i ({wb_sdram_dbus_cti_o, wb_sdram_ibus_cti_o}),
+    .wbm_bte_i ({wb_sdram_dbus_bte_o, wb_sdram_ibus_bte_o}),
+    .wbm_dat_o ({wb_sdram_dbus_dat_i, wb_sdram_ibus_dat_i}),
+    .wbm_ack_o ({wb_sdram_dbus_ack_i, wb_sdram_ibus_ack_i}),
+    .wbm_err_o ({wb_sdram_dbus_err_i, wb_sdram_ibus_err_i}),
+    .wbm_rty_o ({wb_sdram_dbus_rty_i, wb_sdram_ibus_rty_i}),
+    .wbs_adr_o (wb_mem_adr_o),
+    .wbs_dat_o (wb_mem_dat_o),
+    .wbs_sel_o (wb_mem_sel_o),
+    .wbs_we_o  (wb_mem_we_o),
+    .wbs_cyc_o (wb_mem_cyc_o),
+    .wbs_stb_o (wb_mem_stb_o),
+    .wbs_cti_o (wb_mem_cti_o),
+    .wbs_bte_o (wb_mem_bte_o),
+    .wbs_dat_i (wb_mem_dat_i),
+    .wbs_ack_i (wb_mem_ack_i),
+    .wbs_err_i (wb_mem_err_i),
+    .wbs_rty_i (wb_mem_rty_i));
 
 wb_arbiter
   #(.num_masters (2))
