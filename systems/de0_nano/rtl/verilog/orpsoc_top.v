@@ -47,8 +47,6 @@ module orpsoc_top #(
         parameter       i2c0_wb_adr_width = 3,
         parameter       i2c1_wb_adr_width = 3
 )(
-	input		sys_clk_pad_i,
-	input		rst_n_pad_i,
 
 `ifdef SIM
 	output		tdo_pad_o,
@@ -56,7 +54,7 @@ module orpsoc_top #(
 	input		tck_pad_i,
 	input		tdi_pad_i,
 `endif
-
+/*
 	output	[1:0]	sdram_ba_pad_o,
 	output	[12:0]	sdram_a_pad_o,
 	output		sdram_cs_n_pad_o,
@@ -67,11 +65,11 @@ module orpsoc_top #(
 	output	[1:0]	sdram_dqm_pad_o,
 	output		sdram_cke_pad_o,
 	output		sdram_clk_pad_o,
+*/
 
-	input		uart0_srx_pad_i,
-	output		uart0_stx_pad_o,
-
+`ifdef GPIO
 	inout	[7:0]	gpio0_io,
+`endif
 
 `ifdef I2C0
 	inout		i2c0_sda_io,
@@ -109,8 +107,18 @@ module orpsoc_top #(
  `endif
 `endif
 
-    output          accelerometer_cs_o,
-    input           accelerometer_irq_i
+`ifdef ACEELEROMETER
+    	output          accelerometer_cs_o,
+     	input           accelerometer_irq_i,
+`endif
+
+`ifdef 	UART0
+    	input		uart0_srx_pad_i,
+    	output		uart0_stx_pad_o,
+`endif
+
+	input		sys_clk_pad_i,
+    	input		rst_n_pad_i
 );
 
 parameter	IDCODE_VALUE=32'h14951185;
@@ -119,9 +127,10 @@ parameter	IDCODE_VALUE=32'h14951185;
 
    localparam MEM_SIZE_BITS = 23;
 
-// choose I2C operation mode
-assign accelerometer_cs_o = 1;
-
+`ifdef ACEELEROMETER
+	// choose I2C operation mode
+	assign accelerometer_cs_o = 1;
+`endif
 ////////////////////////////////////////////////////////////////////////
 //
 // Clock and reset generation module
@@ -209,7 +218,7 @@ tap_top jtag_tap0 (
 // ALTERA Virtual JTAG TAP
 //
 ////////////////////////////////////////////////////////////////////////
-/*
+
 wire	dbg_if_select;
 wire	dbg_if_tdo;
 wire	jtag_tap_tdo;
@@ -230,7 +239,6 @@ altera_virtual_jtag jtag_tap0 (
 	.update_dr_o		(jtag_tap_update_dr),
 	.debug_select_o		(dbg_if_select)
 );
-*/
 `endif
 
 ////////////////////////////////////////////////////////////////////////
@@ -576,6 +584,8 @@ wb_sdram_ctrl0 (
 	.wb_ack_o	({wb_s2m_sdram_ibus_ack, wb_s2m_sdram_dbus_ack})
 );
 */
+
+`ifdef 	UART0
 ////////////////////////////////////////////////////////////////////////
 //
 // UART0
@@ -654,6 +664,7 @@ wb_data_resize wb_data_resize_uart0 (
 	.wbs_err_i	(wb8_s2m_uart0_err),
 	.wbs_rty_i	(wb8_s2m_uart0_rty)
 );
+`endif //`!ifdef UART0
 
 `ifdef I2C0
 ////////////////////////////////////////////////////////////////////////
@@ -1127,6 +1138,7 @@ wb_data_resize wb_data_resize_spi2 (
 );
 `endif
 
+`ifdef GPIO
 ////////////////////////////////////////////////////////////////////////
 //
 // GPIO 0
@@ -1209,6 +1221,7 @@ wb_data_resize wb_data_resize_gpio0 (
 	.wbs_err_i	(wb8_s2m_gpio0_err),
 	.wbs_rty_i	(wb8_s2m_gpio0_rty)
 );
+`endif //!`ifdef GPIO
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -1218,7 +1231,11 @@ wb_data_resize wb_data_resize_gpio0 (
 
 assign or1k_irq[0] = 0; // Non-maskable inside OR1K
 assign or1k_irq[1] = 0; // Non-maskable inside OR1K
+`ifdef UART0
 assign or1k_irq[2] = uart0_irq;
+`else
+assign or1k_irq[2] = 0;
+`endif
 assign or1k_irq[3] = 0;
 assign or1k_irq[4] = 0;
 assign or1k_irq[5] = 0;
@@ -1260,7 +1277,11 @@ assign or1k_irq[20] = 0;
 assign or1k_irq[21] = 0;
 assign or1k_irq[22] = 0;
 assign or1k_irq[23] = 0;
+`ifdef ACEELEROMETER
 assign or1k_irq[24] = accelerometer_irq_i;
+`else
+assign or1k_irq[24] = 0;
+`endif
 assign or1k_irq[25] = 0;
 assign or1k_irq[26] = 0;
 assign or1k_irq[27] = 0;
