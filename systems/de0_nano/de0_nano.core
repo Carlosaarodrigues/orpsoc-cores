@@ -51,6 +51,20 @@ include_files =
  bench/verilator/Or1200MonitorSC.h
  bench/verilator/elf.h
  bench/verilator/UartSC.h
+ bench/verilator/GdbServerSC.h
+ bench/verilator/JtagSC_includes.h
+ bench/verilator/JtagSC.h
+ bench/verilator/TapAction.h
+ bench/verilator/TapStateMachine.h
+ bench/verilator/TapActionDRScan.h
+ bench/verilator/TapActionIRScan.h
+ bench/verilator/TapActionReset.h
+ bench/verilator/RspConnection.h
+ bench/verilator/RspPacket.h
+ bench/verilator/MpHash.h
+ bench/verilator/DebugUnitSC.h
+ bench/verilator/SprCache.h
+ bench/verilator/MemCache.h
  
 define_file = de0_nano/rtl/verilog/include/orpsoc-defines.v
 tb_toplevel = bench/verilator/OrpsocMain.cpp

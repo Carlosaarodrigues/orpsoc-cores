@@ -39,7 +39,7 @@
 `ifndef MOR1KX
 `define OR1200
 `endif
-//`define SIM
+`define SIM
 /*
 `define I2C0
 `define I2C1
