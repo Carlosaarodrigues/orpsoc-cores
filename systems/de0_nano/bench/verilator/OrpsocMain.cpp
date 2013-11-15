@@ -56,8 +56,6 @@
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
 #include "orpsoc-defines.h"
-//#define SIM
-//#define UART0
 
 #ifdef SIM
 # include "GdbServerSC.h"

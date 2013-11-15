@@ -40,7 +40,8 @@
 `define OR1200
 `endif
 `define SIM
-/*
+`define UART0
+/* add slaver i2v verilog ou systemc
 `define I2C0
 `define I2C1
 `define GPIO
@@ -53,7 +54,6 @@
 `define SPI2_SLAVE_SELECTS
 `define SPI2
 `define ACEELEROMETER // systemC dont suport open inputs
-`define UART0
 */
 `define BOOTROM
 `define RAM_WB

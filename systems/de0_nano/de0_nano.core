@@ -54,6 +54,7 @@ src_files =
  bench/verilator/TapActionReset.cpp
  bench/verilator/TapActionIRScan.cpp
  bench/verilator/TapActionDRScan.cpp
+ bench/verilator/UartSC.cpp
 include_files = 
  bench/verilator/OrpsocMain.h
  bench/verilator/OrpsocAccess.h
