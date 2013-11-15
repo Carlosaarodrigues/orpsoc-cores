@@ -42,6 +42,18 @@ src_files =
  bench/verilator/MemoryLoad.cpp
  bench/verilator/Or1200MonitorSC.cpp
  bench/verilator/ResetSC.cpp
+ bench/verilator/JtagSC.cpp
+ bench/verilator/GdbServerSC.cpp
+ bench/verilator/TapStateMachine.cpp
+ bench/verilator/TapAction.cpp
+ bench/verilator/RspPacket.cpp
+ bench/verilator/RspConnection.cpp
+ bench/verilator/DebugUnitSC.cpp
+ bench/verilator/MpHash.cpp
+ bench/verilator/Utils.cpp
+ bench/verilator/TapActionReset.cpp
+ bench/verilator/TapActionIRScan.cpp
+ bench/verilator/TapActionDRScan.cpp
 include_files = 
  bench/verilator/OrpsocMain.h
  bench/verilator/OrpsocAccess.h
@@ -65,6 +77,7 @@ include_files =
  bench/verilator/DebugUnitSC.h
  bench/verilator/SprCache.h
  bench/verilator/MemCache.h
+ bench/verilator/Utils.h
  
 define_file = de0_nano/rtl/verilog/include/orpsoc-defines.v
 tb_toplevel = bench/verilator/OrpsocMain.cpp
