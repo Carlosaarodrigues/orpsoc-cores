@@ -9,7 +9,7 @@ depend =
  wb_bfm
  wb_intercon
 
-simulators = icarus modelsim
+simulators = verilator icarus modelsim
 
 [verilog]
 src_files =
