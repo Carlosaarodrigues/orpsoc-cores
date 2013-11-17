@@ -1,4 +1,4 @@
-`undef JTAG_DEBUG
+`define JTAG_DEBUG
 
 module orpsoc_top
   (input wb_clk_i,

@@ -56,12 +56,11 @@
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
 //#include "orpsoc-defines.h"
-//#define JTAG_DEBUG
+#define JTAG_DEBUG
 //#define UART0
 
 #ifdef JTAG_DEBUG
-# include "GdbServerSC.h"
-# include "JtagSC_includes.h"
+# include "JtagServerSC.h"
 #endif
 
 #ifdef UART0
@@ -120,8 +119,8 @@ int sc_main(int argc, char *argv[])
 	bool vcd_file_name_given = false;
 
 #ifdef JTAG_DEBUG
-	bool rsp_server_enabled = false;
-	int rsp_server_port = DEFAULT_RSP_PORT;
+	bool jtag_server_enabled = false;
+	int jtag_server_port = DEFAULT_JTAG_PORT;
 #endif
 
 	// Executable app load variables
@@ -142,8 +141,7 @@ int sc_main(int argc, char *argv[])
 	Or1200MonitorSC *monitor;	// Handle l.nop x instructions
 
 #ifdef JTAG_DEBUG
-	JtagSC *jtag;		// Generate JTAG signals
-	GdbServerSC *gdbServer;	// Map RSP requests to debug unit
+	JtagServerSC *jtagServer; // Generate JTAG signals
 #endif
 
 #ifdef UART0
@@ -163,9 +161,6 @@ int sc_main(int argc, char *argv[])
 	// Instantiate the SystemC modules
 	reset = new ResetSC("reset", BENCH_RESET_TIME);
 
-#ifdef JTAG_DEBUG
-	jtag = new JtagSC("jtag");
-#endif
 
 #ifdef UART0
 	uart = new UartSC("uart");
@@ -225,12 +220,12 @@ int sc_main(int argc, char *argv[])
 				dump_stop_set = true;
 			}
 #ifdef JTAG_DEBUG
-			else if ((strcmp(argv[i], "-r") == 0) ||
-				 (strcmp(argv[i], "--rsp") == 0)) {
-				rsp_server_enabled = true;
+			else if ((strcmp(argv[i], "-j") == 0) ||
+				 (strcmp(argv[i], "--jtag") == 0)) {
+				jtag_server_enabled = true;
 				if (i + 1 < argc)
 					if (argv[i + 1][0] != '-') {
-						rsp_server_port =
+						jtag_server_port =
 						    atoi(argv[i + 1]);
 						i++;
 					}
@@ -264,9 +259,9 @@ int sc_main(int argc, char *argv[])
 				printf
 				    ("  -t, --vcdstop <val> \tEnable and terminate VCD generation at <val> ns\n");
 #ifdef JTAG_DEBUG
-				printf("\nRemote debugging:\n");
+				printf("\nRemote JTAG debugging:\n");
 				printf
-				    ("  -r, --rsp [<port>]\tEnable RSP debugging server, opt. specify <port>\n");
+				    ("  -j, --jtag [<port>]\tEnable JTAG debugging server, opt. specify <port>\n");
 #endif
 				monitor->printUsage();
 				printf("\n");
@@ -288,12 +283,14 @@ int sc_main(int argc, char *argv[])
 		cout << endl;
 	}
 #ifdef JTAG_DEBUG
-	if (rsp_server_enabled)
-		gdbServer =
-		    new GdbServerSC("gdb-server", FLASH_START, FLASH_END,
-				    rsp_server_port, jtag->tapActionQueue);
+	if (jtag_server_enabled)
+		jtagServer =
+		    new JtagServerSC("jtag-server" 
+				//FLASH_START, FLASH_END,
+				//jtag_server_port, jtag->tapActionQueue
+					);
 	else
-		gdbServer = NULL;
+		jtagServer = NULL;
 #endif
 
 	// Connect up ORPSoC
@@ -320,12 +317,12 @@ int sc_main(int argc, char *argv[])
 	monitor->clk(clk);	// Monitor
 
 #ifdef JTAG_DEBUG
-	jtag->sysReset(rst);	// JTAG
-	jtag->tck(jtag_tck);
-	jtag->tdi(jtag_tdi);
-	jtag->tdo(jtag_tdo);
-	jtag->tms(jtag_tms);
-	jtag->trst(jtag_trst);
+	jtagServer->sysReset(rst);	// JTAG
+	jtagServer->tck(jtag_tck);
+	jtagServer->tdi(jtag_tdi);
+	jtagServer->tdo(jtag_tdo);
+	jtagServer->tms(jtag_tms);
+	jtagServer->trst(jtag_trst);
 #endif
 
 #ifdef UART0
@@ -489,10 +486,8 @@ int sc_main(int argc, char *argv[])
 finish_up:
 	// Free memory
 #ifdef JTAG_DEBUG
-	if (rsp_server_enabled)
-		delete gdbServer;
-
-	delete jtag;
+	if (jtag_server_enabled)
+		delete jtagServer;
 #endif
 
 	delete monitor;

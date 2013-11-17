@@ -8,6 +8,8 @@ depend =
  vlog_tb_utils
  wb_bfm
  wb_intercon
+ jtag_tap
+ adv_debug_sys
 
 simulators = verilator icarus modelsim
 
@@ -30,6 +32,7 @@ src_files =
  bench/verilator/MemoryLoad.cpp
  bench/verilator/Or1200MonitorSC.cpp
  bench/verilator/ResetSC.cpp
+ bench/verilator/JtagServerSC.cpp
 include_files = 
  bench/verilator/OrpsocMain.h
  bench/verilator/OrpsocAccess.h
@@ -39,4 +42,5 @@ include_files =
  bench/verilator/Or1200MonitorSC.h
  bench/verilator/elf.h
  bench/verilator/UartSC.h
+ bench/verilator/JtagServerSC.h
 tb_toplevel   = bench/verilator/OrpsocMain.cpp
