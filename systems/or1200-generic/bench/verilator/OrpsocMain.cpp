@@ -74,6 +74,9 @@ int gSimRunning;
 
 int sc_main(int argc, char *argv[])
 {
+
+	cout << "Starting ORPSoc Verilator cycle accurate simulation...\n";
+
 	sc_set_time_resolution(1, TIMESCALE_UNIT);
 	// CPU clock (also used as JTAG TCK) and reset (both active high and low)
 	sc_time clkPeriod(BENCH_CLK_HALFPERIOD * 2.0, TIMESCALE_UNIT);
@@ -283,6 +286,7 @@ int sc_main(int argc, char *argv[])
 		cout << endl;
 	}
 #ifdef JTAG_DEBUG
+	cout << "Preparing to launch JTAG server...\n";
 	if (jtag_server_enabled)
 		jtagServer =
 		    new JtagServerSC("jtag-server" 
@@ -313,17 +317,21 @@ int sc_main(int argc, char *argv[])
 	reset->clk(clk);	// Reset
 	reset->rst(rst);
 	reset->rstn(rstn);
-
 	monitor->clk(clk);	// Monitor
+	cout << "Connecting the JTAG server module...\n";
+
 
 #ifdef JTAG_DEBUG
+
 	jtagServer->sysReset(rst);	// JTAG
 	jtagServer->tck(jtag_tck);
 	jtagServer->tdi(jtag_tdi);
 	jtagServer->tdo(jtag_tdo);
 	jtagServer->tms(jtag_tms);
 	jtagServer->trst(jtag_trst);
+
 #endif
+
 
 #ifdef UART0
 	uart->clk(clk);		// Uart
@@ -332,10 +340,10 @@ int sc_main(int argc, char *argv[])
 #endif
 
 	// Tie off signals
-#ifdef JTAG_DEBUG
-	jtag_tdi = 1;		// Tie off the JTAG inputs
-	jtag_tms = 1;
-#endif
+//#ifdef JTAG_DEBUG
+//	jtag_tdi = 0;		// Tie off the JTAG inputs
+//	jtag_tms = 0;
+//#endif
 
 	if (VCD_enabled) {
 		Verilated::traceEverOn(true);

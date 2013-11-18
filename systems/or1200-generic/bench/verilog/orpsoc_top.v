@@ -64,8 +64,8 @@ wire	jtag_tap_capture_dr;
 tap_top jtag_tap0 (
 	.tdo_pad_o			(tdo_pad_o),
 	.tms_pad_i			(tms_pad_i),
-	.tck_pad_i			(dbg_tck),
-	.trst_pad_i			(async_rst),
+	.tck_pad_i			(tck_pad_i),
+	.trst_pad_i			(wb_rst),
 	.tdi_pad_i			(tdi_pad_i),
 
 	.tdo_padoe_o			(tdo_padoe_o),
@@ -96,6 +96,26 @@ tap_top jtag_tap0 (
    ////////////////////////////////////////////////////////////////////////
 
    wire [19:0] 				  or1200_pic_ints;
+
+   wire	[31:0]	or1k_dbg_dat_i;  
+   wire	[31:0]	or1k_dbg_adr_i;
+   wire		or1k_dbg_we_i;
+   wire		or1k_dbg_stb_i;
+   wire		or1k_dbg_ack_o;
+   wire	[31:0]	or1k_dbg_dat_o;
+
+   wire		or1k_dbg_stall_i;
+   wire		or1k_dbg_ewt_i;
+   wire	[3:0]	or1k_dbg_lss_o;
+   wire	[1:0]	or1k_dbg_is_o;
+   wire	[10:0]	or1k_dbg_wp_o;
+   wire		or1k_dbg_bp_o;
+   wire		or1k_dbg_rst;
+
+   wire		or1k_rst;
+
+   assign	or1k_rst= wb_rst | or1k_dbg_rst;
+
 
    or1200_top #(.boot_adr(32'h00000100)) or1200_top0
        (
@@ -157,7 +177,7 @@ tap_top jtag_tap0 (
 
 	// Core clocks, resets
 	.clk_i				(wb_clk_i),
-	.rst_i				(wb_rst_i),
+	.rst_i				(or1k_rst),
 	
 	.clmode_i			(2'b00),
 	// Interrupts      
@@ -265,7 +285,7 @@ adbg_top dbg_if0 (
 	.cpu0_bp_i	(or1k_dbg_bp_o),
 
 	// TAP interface
-	.tck_i		(dbg_tck),
+	.tck_i		(tck_pad_i),
 	.tdi_i		(jtag_tap_tdo),
 	.tdo_o		(dbg_if_tdo),
 	.rst_i		(wb_rst),

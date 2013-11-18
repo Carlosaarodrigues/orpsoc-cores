@@ -33,6 +33,8 @@ SC_HAS_PROCESS(JtagServerSC);
 
 
 JtagServerSC::JtagServerSC(sc_core::sc_module_name name){
+
+	cout << "Launching JTAG Server...";
 	//Launch SysC thread
 	SC_THREAD(MainThread);
 }				//JtagServerSC
@@ -41,24 +43,27 @@ JtagServerSC::~JtagServerSC()
 {
 	cout << "Destructor must exist and have non-empty body";
 
-}				// ~GdbServerSC
+}				// ~JtagServerSC
 
 void JtagServerSC::MainThread(){
 
 	ResetTap();
 	GotoRunTestIdle();
 
+	tdi = 1;
+	tms = 1;
+
 	cout << "Running Jtag Server...\n";
-	while(1);
+	//while(1);
 }				//MainThread
 
 
 
 void JtagServerSC::ResetTap(){
-	cout << "Resetting Tap...";
+	cout << "Resetting Tap...\n";
 }
 
 void JtagServerSC::GotoRunTestIdle(){
-	cout << "Going to Run Test / Idle...";
+	cout << "Going to Run Test / Idle...\n";
 }
 
