@@ -11,6 +11,7 @@
 ////  Author(s):                                                  ////
 ////      - Jeremy Bennett jeremy.bennett@embecosm.com            ////
 ////      - Julius Baxter jb@orsoc.se                             ////
+////      - Jose T. de Sousa jb@inesc-id.pt                       ////
 ////                                                              ////
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
@@ -72,7 +73,7 @@ extern int gSimRunning;
 #define FLASH_END   0xf01fffff
 
 //! Default port for RSP to listen on
-#define DEFAULT_RSP_PORT  50003
+#define DEFAULT_JTAG_PORT  50003
 
 //! FIFO size for talking to the RSP connection
 #define RSP_FIFO_SIZE  8
