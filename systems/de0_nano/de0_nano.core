@@ -35,8 +35,50 @@ include_files =
  rtl/verilog/wb_intercon.vh
 
 [verilator]
-source_type = C
+source_type = systemC
 verilator_options = -Wno-fatal --trace
-src_files = bench/verilator/or1k-elf-loader.c
-include_files = bench/verilator/or1k-elf-loader.h
-tb_toplevel = bench/verilator/tb.cpp
+src_files = 
+ bench/verilator/OrpsocAccess.cpp
+ bench/verilator/MemoryLoad.cpp
+ bench/verilator/Or1200MonitorSC.cpp
+ bench/verilator/ResetSC.cpp
+ bench/verilator/JtagSC.cpp
+ bench/verilator/GdbServerSC.cpp
+ bench/verilator/TapStateMachine.cpp
+ bench/verilator/TapAction.cpp
+ bench/verilator/RspPacket.cpp
+ bench/verilator/RspConnection.cpp
+ bench/verilator/DebugUnitSC.cpp
+ bench/verilator/MpHash.cpp
+ bench/verilator/Utils.cpp
+ bench/verilator/TapActionReset.cpp
+ bench/verilator/TapActionIRScan.cpp
+ bench/verilator/TapActionDRScan.cpp
+ bench/verilator/UartSC.cpp
+include_files = 
+ bench/verilator/OrpsocMain.h
+ bench/verilator/OrpsocAccess.h
+ bench/verilator/MemoryLoad.h
+ bench/verilator/coff.h
+ bench/verilator/ResetSC.h
+ bench/verilator/Or1200MonitorSC.h
+ bench/verilator/elf.h
+ bench/verilator/UartSC.h
+ bench/verilator/GdbServerSC.h
+ bench/verilator/JtagSC_includes.h
+ bench/verilator/JtagSC.h
+ bench/verilator/TapAction.h
+ bench/verilator/TapStateMachine.h
+ bench/verilator/TapActionDRScan.h
+ bench/verilator/TapActionIRScan.h
+ bench/verilator/TapActionReset.h
+ bench/verilator/RspConnection.h
+ bench/verilator/RspPacket.h
+ bench/verilator/MpHash.h
+ bench/verilator/DebugUnitSC.h
+ bench/verilator/SprCache.h
+ bench/verilator/MemCache.h
+ bench/verilator/Utils.h
+ 
+define_file = de0_nano/rtl/verilog/include/orpsoc-defines.v
+tb_toplevel = bench/verilator/OrpsocMain.cpp
