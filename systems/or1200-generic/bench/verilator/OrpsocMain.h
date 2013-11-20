@@ -57,8 +57,8 @@ extern int gSimRunning;
 //! The number of cycles of reset required
 #define BENCH_RESET_TIME      10
 
-//! CPU clock Half period in timescale units
-#define BENCH_CLK_HALFPERIOD  10
+//! CPU clock Half period in timescale units 
+#define BENCH_CLK_HALFPERIOD  5 //10 -->50MHz 5 --> 100MHZ 
 
 //! Ratio of JTAG clock period to CPU clock period
 #define CLOCK_RATIO  10

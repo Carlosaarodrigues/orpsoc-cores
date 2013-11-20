@@ -10,6 +10,7 @@ depend =
  wb_intercon
  jtag_tap
  adv_debug_sys
+ uart16550
 
 simulators = verilator icarus modelsim
 
@@ -22,25 +23,28 @@ tb_private_src_files =
 include_files =
  bench/verilog/include/or1200_defines.v
  bench/verilog/include/timescale.v
+ bench/verilog/include/uart_defines.v
  bench/verilog/wb_intercon.vh
 
 [verilator]
 source_type = systemC
 verilator_options = -Wno-fatal --trace
 src_files = 
+ bench/verilator/Or1200MonitorSC.cpp
  bench/verilator/OrpsocAccess.cpp
  bench/verilator/MemoryLoad.cpp
- bench/verilator/Or1200MonitorSC.cpp
  bench/verilator/ResetSC.cpp
  bench/verilator/JtagServerSC.cpp
+ bench/verilator/UartSC.cpp
 include_files = 
+ bench/verilator/Or1200MonitorSC.h
  bench/verilator/OrpsocMain.h
  bench/verilator/OrpsocAccess.h
  bench/verilator/MemoryLoad.h
  bench/verilator/coff.h
  bench/verilator/ResetSC.h
- bench/verilator/Or1200MonitorSC.h
  bench/verilator/elf.h
  bench/verilator/UartSC.h
  bench/verilator/JtagServerSC.h
+ bench/verilator/UartSC.h
 tb_toplevel   = bench/verilator/OrpsocMain.cpp

@@ -1,8 +1,14 @@
-`define JTAG_DEBUG
+//`define JTAG_DEBUG
 
-module orpsoc_top
-  (input wb_clk_i,
-   input wb_rst_i
+module orpsoc_top#(
+	parameter	uart0_aw = 3
+
+  )(input wb_clk_i,
+   input wb_rst_i,
+//UART
+    output uart0_stx_pad_o,
+    input uart0_srx_pad_i
+
 
 `ifdef JTAG_DEBUG
 ,   output          tdo_pad_o,
@@ -33,18 +39,6 @@ module orpsoc_top
    wire wb_rst = wb_rst_i;
 
    `include "wb_intercon.vh"
-
-   wire [31:0]                wb_m2s_uart8_adr;
-   wire [7:0] 		      wb_m2s_uart8_dat;
-   wire 		      wb_m2s_uart8_we;
-   wire 		      wb_m2s_uart8_cyc;
-   wire 		      wb_m2s_uart8_stb;
-   wire [2:0] 		      wb_m2s_uart8_cti;
-   wire [1:0] 		      wb_m2s_uart8_bte;
-   wire [7:0] 		      wb_s2m_uart8_dat;
-   wire 		      wb_s2m_uart8_ack;
-   wire 		      wb_s2m_uart8_err;
-   wire 		      wb_s2m_uart8_rty;
 
 `ifdef JTAG_DEBUG
 ////////////////////////////////////////////////////////////////////////
@@ -218,6 +212,21 @@ tap_top jtag_tap0 (
    // UART
    // 
    ////////////////////////////////////////////////////////////////////////
+
+wire	uart0_irq;
+
+wire [31:0]	wb_m2s_uart8_adr;
+wire [1:0]	wb_m2s_uart8_bte;
+wire [2:0]	wb_m2s_uart8_cti;
+wire		wb_m2s_uart8_cyc;
+wire [7:0]	wb_m2s_uart8_dat;
+wire		wb_m2s_uart8_stb;
+wire		wb_m2s_uart8_we;
+wire [7:0] 	wb_s2m_uart8_dat;
+wire		wb_s2m_uart8_ack;
+wire		wb_s2m_uart8_err;
+wire		wb_s2m_uart8_rty;
+
    wb_data_resize wb_data_resize_uart0
    (//Wishbone Master interface
     .wbm_adr_i (wb_m2s_uart_adr),
@@ -244,25 +253,42 @@ tap_top jtag_tap0 (
     .wbs_ack_i (wb_s2m_uart8_ack),
     .wbs_err_i (wb_s2m_uart8_err),
     .wbs_rty_i (wb_s2m_uart8_rty));
-/* 
-   wb_uart_wrapper #(.DEBUG (0))
-   wb_uart_wrapper0
-     (
-      //Wishbone Master interface
-      .wb_clk_i (wb_clk_i),
-      .wb_rst_i (wb_rst_i),
-      .wb_adr_i	(wb_m2s_uart8_adr),
-      .wb_dat_i	(wb_m2s_uart8_dat),
-      .wb_we_i	(wb_m2s_uart8_we),
-      .wb_cyc_i	(wb_m2s_uart8_cyc),
-      .wb_stb_i	(wb_m2s_uart8_stb),
-      .wb_cti_i	(wb_m2s_uart8_cti),
-      .wb_bte_i	(wb_m2s_uart8_bte),
-      .wb_dat_o	(wb_s2m_uart8_dat),
-      .wb_ack_o	(wb_s2m_uart8_ack),
-      .wb_err_o (wb_s2m_uart8_err),
-      .wb_rty_o (wb_s2m_uart8_rty));
-*/
+
+
+assign	wb8_s2m_uart0_err = 0;
+assign	wb8_s2m_uart0_rty = 0;
+
+uart_top uart16550_0 (
+	// Wishbone slave interface
+	.wb_clk_i	(wb_clk),
+	.wb_rst_i	(wb_rst),
+	.wb_adr_i	(wb_m2s_uart8_adr),
+	.wb_dat_i	(wb_m2s_uart8_dat),
+	.wb_we_i	(wb_m2s_uart8_we ),
+	.wb_stb_i	(wb_m2s_uart8_stb),
+	.wb_cyc_i	(wb_m2s_uart8_cyc),
+	.wb_sel_i	(4'b0), // Not used in 8-bit mode
+	.wb_dat_o	(wb_s2m_uart8_dat),
+	.wb_ack_o	(wb_s2m_uart8_ack),
+
+	// Outputs
+	.int_o		(uart0_irq),
+	.stx_pad_o	(uart0_stx_pad_o),
+	.rts_pad_o	(),
+	.dtr_pad_o	(),
+
+	// Inputs
+	.srx_pad_i	(uart0_srx_pad_i),
+	.cts_pad_i	(1'b0),
+	.dsr_pad_i	(1'b0),
+	.ri_pad_i	(1'b0),
+	.dcd_pad_i	(1'b0)
+);
+
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////
 //
