@@ -1,14 +1,19 @@
-//`define JTAG_DEBUG
+`include "orpsoc-defines.v"
 
 module orpsoc_top#(
 	parameter	uart0_aw = 3
 
   )(input wb_clk_i,
-   input wb_rst_i,
-//UART
-    output uart0_stx_pad_o,
-    input uart0_srx_pad_i
+   input wb_rst_i
 
+`ifdef UART0
+,    output uart0_stx_pad_o,
+    input uart0_srx_pad_i
+`endif
+
+`ifdef GPIO
+,	inout	[7:0]	gpio_io
+`endif
 
 `ifdef JTAG_DEBUG
 ,   output          tdo_pad_o,
@@ -206,7 +211,8 @@ tap_top jtag_tap0 (
       .wb_ack_o	(wb_s2m_mem_ack),
       .wb_err_o (wb_s2m_mem_err),
       .wb_rty_o (wb_s2m_mem_rty));
-   
+
+`ifdef UART0   
    ////////////////////////////////////////////////////////////////////////
    //
    // UART
@@ -285,10 +291,7 @@ uart_top uart16550_0 (
 	.dcd_pad_i	(1'b0)
 );
 
-
-
-
-
+`endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -337,6 +340,92 @@ adbg_top dbg_if0 (
 	.wb_bte_o	(wb_m2s_dbg_bte)
 );
 `endif
+
+`ifdef GPIO
+////////////////////////////////////////////////////////////////////////
+//
+// GPIO 0
+//
+////////////////////////////////////////////////////////////////////////
+
+wire [7:0]	gpio_in;
+wire [7:0]	gpio_out;
+wire [7:0]	gpio_dir;
+
+wire [31:0]	wb8_m2s_gpio_adr;
+wire [1:0]	wb8_m2s_gpio_bte;
+wire [2:0]	wb8_m2s_gpio_cti;
+wire		wb8_m2s_gpio_cyc;
+wire [7:0]	wb8_m2s_gpio_dat;
+wire		wb8_m2s_gpio_stb;
+wire		wb8_m2s_gpio_we;
+wire [7:0] 	wb8_s2m_gpio_dat;
+wire		wb8_s2m_gpio_ack;
+wire		wb8_s2m_gpio_err;
+wire		wb8_s2m_gpio_rty;
+
+// Tristate logic for IO
+// 0 = input, 1 = output
+genvar                    i;
+generate
+	for (i = 0; i < 8; i = i+1) begin: gpio0_tris
+		assign gpio_io[i] = gpio_dir[i] ? gpio_out[i] : 1'bz;
+		assign gpio_in[i] = gpio_dir[i] ? gpio_out[i] : gpio_io[i];
+	end
+endgenerate
+
+gpio gpio0 (
+	// GPIO bus
+	.gpio_i		(gpio_in),
+	.gpio_o		(gpio_out),
+	.gpio_dir_o	(gpio_dir),
+	// Wishbone slave interface
+	.wb_adr_i	(wb8_m2s_gpio_adr[0]),
+	.wb_dat_i	(wb8_m2s_gpio_dat),
+	.wb_we_i	(wb8_m2s_gpio_we),
+	.wb_cyc_i	(wb8_m2s_gpio_cyc),
+	.wb_stb_i	(wb8_m2s_gpio_stb),
+	.wb_cti_i	(wb8_m2s_gpio_cti),
+	.wb_bte_i	(wb8_m2s_gpio_bte),
+	.wb_dat_o	(wb8_s2m_gpio_dat),
+	.wb_ack_o	(wb8_s2m_gpio_ack),
+	.wb_err_o	(wb8_s2m_gpio_err),
+	.wb_rty_o	(wb8_s2m_gpio_rty),
+
+	.wb_clk		(wb_clk),
+	.wb_rst		(wb_rst)
+);
+
+// 32-bit to 8-bit wishbone bus resize
+wb_data_resize wb_data_resize_gpio0 (
+	// Wishbone Master interface
+	.wbm_adr_i	(wb_m2s_gpio_adr),
+	.wbm_dat_i	(wb_m2s_gpio_dat),
+	.wbm_sel_i	(wb_m2s_gpio_sel),
+	.wbm_we_i	(wb_m2s_gpio_we ),
+	.wbm_cyc_i	(wb_m2s_gpio_cyc),
+	.wbm_stb_i	(wb_m2s_gpio_stb),
+	.wbm_cti_i	(wb_m2s_gpio_cti),
+	.wbm_bte_i	(wb_m2s_gpio_bte),
+	.wbm_dat_o	(wb_s2m_gpio_dat),
+	.wbm_ack_o	(wb_s2m_gpio_ack),
+	.wbm_err_o	(wb_s2m_gpio_err),
+	.wbm_rty_o	(wb_s2m_gpio_rty),
+	// Wishbone Slave interface
+	.wbs_adr_o	(wb8_m2s_gpio_adr),
+	.wbs_dat_o	(wb8_m2s_gpio_dat),
+	.wbs_we_o	(wb8_m2s_gpio_we ),
+	.wbs_cyc_o	(wb8_m2s_gpio_cyc),
+	.wbs_stb_o	(wb8_m2s_gpio_stb),
+	.wbs_cti_o	(wb8_m2s_gpio_cti),
+	.wbs_bte_o	(wb8_m2s_gpio_bte),
+	.wbs_dat_i	(wb8_s2m_gpio_dat),
+	.wbs_ack_i	(wb8_s2m_gpio_ack),
+	.wbs_err_i	(wb8_s2m_gpio_err),
+	.wbs_rty_i	(wb8_s2m_gpio_rty)
+);
+`endif //!`ifdef GPIO
+
 
    ////////////////////////////////////////////////////////////////////////
    //

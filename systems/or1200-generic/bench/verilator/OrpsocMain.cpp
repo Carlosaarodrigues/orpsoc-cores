@@ -58,9 +58,7 @@
 
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
-//#include "orpsoc-defines.h"
-//#define JTAG_DEBUG
-#define UART0
+#include "orpsoc-defines.h"
 
 #ifdef JTAG_DEBUG
 # include "JtagServerSC.h"
@@ -108,6 +106,10 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > uart_rx;	// External UART
 	sc_signal < bool > uart_tx;
 #endif
+
+#ifdef GPIO
+	sc_signal < unsigned int > gpio;	// GPIO interface
+#endif 
 
 	gSimRunning = 0;
 
@@ -328,6 +330,10 @@ int sc_main(int argc, char *argv[])
 	orpsoc->uart0_srx_pad_i(uart_rx);	// External UART
 	orpsoc->uart0_stx_pad_o(uart_tx);
 #endif
+
+#ifdef GPIO
+	orpsoc->gpio_io(gpio);	// GPIO interface
+#endif 
 
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
