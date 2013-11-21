@@ -50,14 +50,13 @@
 
 
 #include "ResetSC.h" 
-#include "Or1200MonitorSC.h"
 
 
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
 //#include "orpsoc-defines.h"
 #define JTAG_DEBUG
-//#define UART0
+#define UART0
 
 #ifdef JTAG_DEBUG
 # include "JtagServerSC.h"
@@ -141,7 +140,6 @@ int sc_main(int argc, char *argv[])
 
 	ResetSC *reset;		// Generate a RESET signal
 
-	Or1200MonitorSC *monitor;	// Handle l.nop x instructions
 
 #ifdef JTAG_DEBUG
 	JtagServerSC *jtagServer; // Generate JTAG signals
@@ -157,9 +155,6 @@ int sc_main(int argc, char *argv[])
 	accessor = new OrpsocAccess(orpsoc);
 
 	memoryload = new MemoryLoad(accessor);
-
-	monitor = new Or1200MonitorSC("monitor", accessor, memoryload,
-				      argc, argv);
 
 	// Instantiate the SystemC modules
 	reset = new ResetSC("reset", BENCH_RESET_TIME);
@@ -266,8 +261,7 @@ int sc_main(int argc, char *argv[])
 				printf
 				    ("  -j, --jtag [<port>]\tEnable JTAG debugging server, opt. specify <port>\n");
 #endif
-				monitor->printUsage();
-				printf("\n");
+
 				return 0;
 			}
 
@@ -317,7 +311,7 @@ int sc_main(int argc, char *argv[])
 	reset->clk(clk);	// Reset
 	reset->rst(rst);
 	reset->rstn(rstn);
-	monitor->clk(clk);	// Monitor
+
 	cout << "Connecting the JTAG server module...\n";
 
 
@@ -399,10 +393,6 @@ int sc_main(int argc, char *argv[])
 				 TIMESCALE_UNIT);
 			gSimRunning = 0;
 			sc_stop();
-			// Print performance summary
-			monitor->perfSummary();
-			// Do memdump if enabled
-			monitor->memdump();
 		} else {
 			if (dump_start_delay_set) {
 				// Run the sim until we want to dump
@@ -451,13 +441,7 @@ int sc_main(int argc, char *argv[])
 								sc_start((double)(sim_time_remaining.to_double()), TIMESCALE_UNIT);
 								// Officially stop the sim
 								sc_stop();
-								// Print performance summary
-								monitor->
-								    perfSummary
-								    ();
-								// Do memdump if enabled
-								monitor->memdump
-								    ();
+						
 							}
 							break;
 						}
@@ -468,12 +452,8 @@ int sc_main(int argc, char *argv[])
 							// Officially stop the sim
 							sc_stop();
 							// Close dump file
-							verilatorVCDFile->close
-							    ();
-							// Do memdump if enabled
-							monitor->memdump();
-							// Print performance summary
-							monitor->perfSummary();
+							verilatorVCDFile->close();
+
 							break;
 						}
 					}
@@ -497,8 +477,6 @@ finish_up:
 	if (jtag_server_enabled)
 		delete jtagServer;
 #endif
-
-	delete monitor;
 
 	delete reset;
 

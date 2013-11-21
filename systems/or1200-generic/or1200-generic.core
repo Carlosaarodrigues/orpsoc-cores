@@ -3,13 +3,11 @@ CAPI=1
 description = "Minimal OR1200 simulation environment"
 depend = 
  or1200
- or1k-elf-loader
- ram_wb
- vlog_tb_utils
  wb_bfm
  wb_intercon
  jtag_tap
  adv_debug_sys
+ uart16550
 
 simulators = verilator icarus modelsim
 
@@ -17,12 +15,17 @@ simulators = verilator icarus modelsim
 src_files =
  bench/verilog/wb_intercon.v
  bench/verilog/orpsoc_top.v
+ bench/verilog/wb_uart_wrapper.v
+ bench/verilog/uart16550_model.v
 tb_private_src_files = 
  bench/verilog/orpsoc_tb.v
 include_files =
- bench/verilog/include/or1200_defines.v
+ bench/verilog/include/or1200_defines.v 
+ bench/verilog/include/uart_defines.v
  bench/verilog/include/timescale.v
  bench/verilog/wb_intercon.vh
+ ../../cores/wb_bfm/wb_bfm_params.v
+
 
 [verilator]
 source_type = systemC
