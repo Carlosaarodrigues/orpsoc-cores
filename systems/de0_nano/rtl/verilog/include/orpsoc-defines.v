@@ -41,10 +41,11 @@
 `endif
 `define SIM
 `define UART0
+`define GPIO
 /* add slaver i2v verilog ou systemc
 `define I2C0
 `define I2C1
-`define GPIO
+
 */
 /* add " simple_spi" in de0_nano.core
 `define SPI0_SLAVE_SELECTS

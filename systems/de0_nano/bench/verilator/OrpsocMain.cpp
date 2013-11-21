@@ -108,6 +108,10 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > uart_tx;
 #endif
 
+#ifdef GPIO
+	sc_signal < unsigned int > gpio;	// GPIO interface
+#endif 
+
 	gSimRunning = 0;
 
 	// Are we running "quiet"?
@@ -328,6 +332,10 @@ int sc_main(int argc, char *argv[])
 	orpsoc->uart0_srx_pad_i(uart_rx);	// External UART
 	orpsoc->uart0_stx_pad_o(uart_tx);
 #endif
+
+#ifdef GPIO
+	orpsoc->gpio0_io(gpio);	// GPIO interface
+#endif 
 
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
