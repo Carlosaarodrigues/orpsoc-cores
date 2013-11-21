@@ -56,7 +56,7 @@
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
 //#include "orpsoc-defines.h"
-#define JTAG_DEBUG
+//#define JTAG_DEBUG
 //#define UART0
 
 #ifdef JTAG_DEBUG
@@ -322,14 +322,14 @@ int sc_main(int argc, char *argv[])
 
 
 #ifdef JTAG_DEBUG
-
-	jtagServer->sysReset(rst);	// JTAG
-	jtagServer->tck(jtag_tck);
-	jtagServer->tdi(jtag_tdi);
-	jtagServer->tdo(jtag_tdo);
-	jtagServer->tms(jtag_tms);
-	jtagServer->trst(jtag_trst);
-
+	if(jtag_server_enabled){
+		jtagServer->sysReset(rst);	// JTAG
+		jtagServer->tck(jtag_tck);
+		jtagServer->tdi(jtag_tdi);
+		jtagServer->tdo(jtag_tdo);
+		jtagServer->tms(jtag_tms);
+		jtagServer->trst(jtag_trst);
+	}
 #endif
 
 
