@@ -218,6 +218,7 @@ tap_top jtag_tap0 (
    // UART
    // 
    ////////////////////////////////////////////////////////////////////////
+/*
    wb_data_resize wb_data_resize_uart0
    (//Wishbone Master interface
     .wbm_adr_i (wb_m2s_uart_adr),
@@ -244,7 +245,7 @@ tap_top jtag_tap0 (
     .wbs_ack_i (wb_s2m_uart8_ack),
     .wbs_err_i (wb_s2m_uart8_err),
     .wbs_rty_i (wb_s2m_uart8_rty));
-/* 
+*/ 
    wb_uart_wrapper #(.DEBUG (0))
    wb_uart_wrapper0
      (
@@ -262,7 +263,7 @@ tap_top jtag_tap0 (
       .wb_ack_o	(wb_s2m_uart8_ack),
       .wb_err_o (wb_s2m_uart8_err),
       .wb_rty_o (wb_s2m_uart8_rty));
-*/
+
 
 ////////////////////////////////////////////////////////////////////////
 //
