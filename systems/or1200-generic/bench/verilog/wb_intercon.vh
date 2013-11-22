@@ -58,6 +58,19 @@ wire [31:0] wb_s2m_gpio_dat;
 wire        wb_s2m_gpio_ack;
 wire        wb_s2m_gpio_err;
 wire        wb_s2m_gpio_rty;
+wire [31:0] wb_m2s_rom_adr;
+wire [31:0] wb_m2s_rom_dat;
+wire  [3:0] wb_m2s_rom_sel;
+wire        wb_m2s_rom_we ;
+wire        wb_m2s_rom_cyc;
+wire        wb_m2s_rom_stb;
+wire  [2:0] wb_m2s_rom_cti;
+wire  [1:0] wb_m2s_rom_bte;
+wire [31:0] wb_s2m_rom_dat;
+wire        wb_s2m_rom_ack;
+wire        wb_s2m_rom_err;
+wire        wb_s2m_rom_rty;
+
 
 wb_intercon wb_intercon0
    (.wb_clk_i          (wb_clk),
@@ -121,5 +134,17 @@ wb_intercon wb_intercon0
     .wb_gpio_dat_i     (wb_s2m_gpio_dat),
     .wb_gpio_ack_i     (wb_s2m_gpio_ack),
     .wb_gpio_err_i     (wb_s2m_gpio_err),
-    .wb_gpio_rty_i     (wb_s2m_gpio_rty));
+    .wb_gpio_rty_i     (wb_s2m_gpio_rty),
+    .wb_rom_adr_o      (wb_m2s_rom_adr),
+    .wb_rom_dat_o      (wb_m2s_rom_dat),
+    .wb_rom_sel_o      (wb_m2s_rom_sel),
+    .wb_rom_we_o       (wb_m2s_rom_we ),
+    .wb_rom_cyc_o      (wb_m2s_rom_cyc),
+    .wb_rom_stb_o      (wb_m2s_rom_stb),
+    .wb_rom_cti_o      (wb_m2s_rom_cti),
+    .wb_rom_bte_o      (wb_m2s_rom_bte),
+    .wb_rom_dat_i      (wb_s2m_rom_dat),
+    .wb_rom_ack_i      (wb_s2m_rom_ack),
+    .wb_rom_err_i      (wb_s2m_rom_err),
+    .wb_rom_rty_i      (wb_s2m_rom_rty));
 

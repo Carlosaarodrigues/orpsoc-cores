@@ -1,7 +1,8 @@
 `include "orpsoc-defines.v"
 
 module orpsoc_top#(
-	parameter	uart0_aw = 3
+	parameter	uart0_aw = 3,
+	parameter	rom0_aw = 6
 
   )(input wb_clk_i,
    input wb_rst_i
@@ -116,7 +117,7 @@ tap_top jtag_tap0 (
    assign	or1k_rst= wb_rst | or1k_dbg_rst;
 
 
-   or1200_top #(.boot_adr(32'h00000100)) or1200_top0
+   or1200_top #(.boot_adr(32'hf0000100)) or1200_top0
        (
 	// Instruction bus, clocks, reset
 	.iwb_clk_i			(wb_clk_i),
@@ -187,6 +188,32 @@ tap_top jtag_tap0 (
 
    ////////////////////////////////////////////////////////////////////////
    //
+   // BOOTROM
+   // 
+   ////////////////////////////////////////////////////////////////////////
+assign	wb_s2m_rom_err = 1'b0;
+assign	wb_s2m_rom_rty = 1'b0;
+
+`ifdef BOOTROM
+rom #(.addr_width(rom0_aw))
+    rom (
+	.wb_clk		(wb_clk),
+	.wb_rst		(wb_rst),
+	.wb_adr_i	(wb_m2s_rom_adr[(rom0_aw + 2) - 1 : 2]),
+	.wb_cyc_i	(wb_m2s_rom_cyc),
+	.wb_stb_i	(wb_m2s_rom_stb),
+	.wb_cti_i	(wb_m2s_rom_cti),
+	.wb_bte_i	(wb_m2s_rom_bte),
+	.wb_dat_o	(wb_s2m_rom_dat),
+	.wb_ack_o	(wb_s2m_rom_ack)
+);
+`else
+assign	wb_s2m_rom_dat_o = 0;
+assign	wb_s2m_rom_ack_o = 0;
+`endif
+
+   ////////////////////////////////////////////////////////////////////////
+   //
    // Generic main RAM
    // 
    ////////////////////////////////////////////////////////////////////////
@@ -219,19 +246,19 @@ tap_top jtag_tap0 (
    // 
    ////////////////////////////////////////////////////////////////////////
 
-wire	uart0_irq;
+    wire	uart0_irq;
 
-wire [31:0]	wb_m2s_uart8_adr;
-wire [1:0]	wb_m2s_uart8_bte;
-wire [2:0]	wb_m2s_uart8_cti;
-wire		wb_m2s_uart8_cyc;
-wire [7:0]	wb_m2s_uart8_dat;
-wire		wb_m2s_uart8_stb;
-wire		wb_m2s_uart8_we;
-wire [7:0] 	wb_s2m_uart8_dat;
-wire		wb_s2m_uart8_ack;
-wire		wb_s2m_uart8_err;
-wire		wb_s2m_uart8_rty;
+    wire [31:0]	wb_m2s_uart8_adr;
+    wire [1:0]	wb_m2s_uart8_bte;
+    wire [2:0]	wb_m2s_uart8_cti;
+    wire	wb_m2s_uart8_cyc;
+    wire [7:0]	wb_m2s_uart8_dat;
+    wire	wb_m2s_uart8_stb;
+    wire	wb_m2s_uart8_we;
+    wire [7:0] 	wb_s2m_uart8_dat;
+    wire	wb_s2m_uart8_ack;
+    wire	wb_s2m_uart8_err;
+    wire	wb_s2m_uart8_rty;
 
    wb_data_resize wb_data_resize_uart0
    (//Wishbone Master interface
@@ -261,10 +288,10 @@ wire		wb_s2m_uart8_rty;
     .wbs_rty_i (wb_s2m_uart8_rty));
 
 
-assign	wb8_s2m_uart0_err = 0;
-assign	wb8_s2m_uart0_rty = 0;
+    assign	wb8_s2m_uart0_err = 0;
+    assign	wb8_s2m_uart0_rty = 0;
 
-uart_top uart16550_0 (
+    uart_top uart16550_0 (
 	// Wishbone slave interface
 	.wb_clk_i	(wb_clk),
 	.wb_rst_i	(wb_rst),
