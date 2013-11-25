@@ -39,9 +39,11 @@
 `define UART0
 `define GPIO
 `define BOOTROM
-/* add slaver i2v verilog ou systemc
-`define I2C0
-`define I2C1
+`define I2C
+`ifdef I2C
+`define FLASH
+`endif
+/* 
 `define SPI0_SLAVE_SELECTS
 `define SPI0
 `define RAM_WB

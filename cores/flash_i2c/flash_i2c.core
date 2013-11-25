@@ -1,0 +1,15 @@
+CAPI=1
+[main]
+description = flash I2C
+
+[verilog]
+src_files =
+ flah_i2cTop.v
+ flash_i2c.v
+ registerInterface.v
+ serialInterface.v
+
+include_files =
+ flash_i2c_define.v
+
+

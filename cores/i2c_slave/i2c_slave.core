@@ -1,0 +1,17 @@
+CAPI=1
+[main]
+description = "OpenCores I2C Controller core"
+
+[verilog]
+src_files =
+ i2cSlave.v
+ i2cSlaveTop.v
+
+include_files =
+ i2cSlave_define.v
+
+[provider]
+name = opencores
+repo_name = i2cslave
+repo_root = trunk/rtl
+revision = 7

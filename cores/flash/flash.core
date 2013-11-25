@@ -1,0 +1,16 @@
+CAPI=1
+[main]
+description = "OpenCores flash Controller core "
+
+[verilog]
+src_files =
+
+
+include_files =
+
+
+[provider]
+name = opencores
+repo_name = wishbone_spi_flash_interface
+repo_root = trunk
+revision = 2
