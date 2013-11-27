@@ -113,7 +113,7 @@ wire        wb_s2m_or1200_i_mem_rty;
 
 
 wb_mux
-  #(.num_slaves (3),
+  #(.num_slaves (4),
     .MATCH_ADDR ({32'h00000000, 32'h90000000, 32'h91000000, 32'ha0000000}),
     .MATCH_MASK ({32'hff800000, 32'hfffffff8, 32'hfffffffe, 32'hfffffff8}))
  wb_mux_or1200_d

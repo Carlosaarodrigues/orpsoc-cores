@@ -12,6 +12,7 @@ depend =
  adv_debug_sys
  uart16550
  gpio
+ i2c
 
 simulators = verilator icarus modelsim
 
