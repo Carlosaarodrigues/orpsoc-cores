@@ -26,7 +26,6 @@ module orpsoc_top#(
 `endif
 );
 
-   localparam wb_aw = 32;
    localparam wb_dw = 32;
 
    localparam MEM_SIZE_BITS = 23;
@@ -462,7 +461,7 @@ wb_data_resize wb_data_resize_gpio0 (
 `ifdef I2C
 ////////////////////////////////////////////////////////////////////////
 //
-// I2C controller
+// I2C controller MASTER
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -470,10 +469,10 @@ wb_data_resize wb_data_resize_gpio0 (
 // Wires
 //
 wire 		i2c_irq;
-wire 		scl_pad_o;
-wire 		scl_padoen_o;
-wire 		sda_pad_o;
-wire 		sda_padoen_o;
+wire 		i2c_scl_pad_o;
+wire 		i2c_scl_padoen_o;
+wire 		i2c_sda_pad_o;
+wire 		i2c_sda_padoen_o;
 
 wire [31:0]	wb8_m2s_i2c_adr;
 wire [1:0]	wb8_m2s_i2c_bte;
@@ -498,12 +497,12 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
    .wb_stb_i			     (wb8_m2s_i2c_stb	),
    .wb_dat_o			     (wb8_s2m_i2c_dat	),
    .wb_ack_o			     (wb8_s2m_i2c_ack	),
-   .scl_pad_i		     	     (i2c_scl_io        ),
-   .scl_pad_o			     (scl_pad_o	 	),
-   .scl_padoen_o		     (scl_padoen_o	),
-   .sda_pad_i			     (i2c_sda_io 	),
-   .sda_pad_o			     (sda_pad_o	 	),
-   .sda_padoen_o		     (sda_padoen_o	),
+   .scl_pad_i		     	     (i2c_scl_io  	),
+   .scl_pad_o			     (i2c_scl_pad_o	),
+   .scl_padoen_o		     (i2c_scl_padoen_o	),
+   .sda_pad_i			     (i2c_sda_io	),
+   .sda_pad_o			     (i2c_sda_pad_o	),
+   .sda_padoen_o		     (i2c_sda_padoen_o	),
    // Interrupt
    .wb_inta_o			     (i2c_irq));
 
@@ -511,8 +510,14 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
    assign wb8_s2m_i2c_rty = 0;
 
    // i2c phy lines
-   assign i2c_scl_io = scl_padoen_o ? 1'bz : scl_pad_o;
-   assign i2c_sda_io = sda_padoen_o ? 1'bz : sda_pad_o;
+`ifdef SIM
+   assign i2c_scl_io = i2c_scl_padoen_o & i2c_s_scl_padoen_o;
+   assign i2c_sda_io = i2c_sda_padoen_o & i2c_s_sda_padoen_o;
+`else 
+   assign i2c_scl_io = i2c_scl_padoen_o ? 1'bz : i2c_scl_pad_o;
+   assign i2c_sda_io = i2c_sda_padoen_o ? 1'bz : i2c_sda_pad_o;
+`endif
+
 
    // 32-bit to 8-bit wishbone bus resize
    wb_data_resize wb_data_resize_i2c (
@@ -554,21 +559,122 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
    ////////////////////////////////////////////////////////////////////////
    `endif // !`ifdef I2C
 
+
+
 `ifdef FLASH
 ////////////////////////////////////////////////////////////////////////
 //
-// FLASH I2C controller
+// I2C controller slave
 //
 ////////////////////////////////////////////////////////////////////////
+//
+// Wires
+//
+wire 		i2c_s_irq;
+wire 		i2c_s_scl_pad_o;
+wire 		i2c_s_scl_padoen_o;
+wire 		i2c_s_sda_pad_o;
+wire 		i2c_s_sda_padoen_o;
 
-   flash_i2cTop flash(
-	.clk	(wb_clk),
-	.rst	(wb_rst),
-	.sda	(i2c_sda_io),
-	.scl	(i2c_scl_io));
+wire [31:0]	wb8_m2s_i2c_s_adr;
+wire [1:0]	wb8_m2s_i2c_s_bte;
+wire [2:0]	wb8_m2s_i2c_s_cti;
+wire		wb8_m2s_i2c_s_cyc;
+wire [7:0]	wb8_m2s_i2c_s_dat;
+wire		wb8_m2s_i2c_s_stb;
+wire		wb8_m2s_i2c_s_we;
+wire [7:0] 	wb8_s2m_i2c_s_dat;
+wire		wb8_s2m_i2c_s_ack;
+wire		wb8_s2m_i2c_s_err;
+wire		wb8_s2m_i2c_s_rty;
 
+//men
+wire 		mem_dat_avai;
+wire		mem_stop;
+
+
+i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_slave (
+   .wb_clk_i			(wb_clk),
+   .wb_rst_i			(wb_rst),
+   .arst_i			(wb_rst),
+   .wb_adr_i			(wb8_m2s_i2c_s_adr[i2c_wb_adr_width-1:0]), //enderaço dos dados
+   .wb_dat_i			(wb8_m2s_i2c_s_dat	 ), //dados entrada
+   .wb_we_i			(wb8_m2s_i2c_s_we	 ),
+   .wb_cyc_i			(wb8_m2s_i2c_s_cyc	 ),
+   .wb_stb_i			(wb8_m2s_i2c_s_stb	 ),
+   .wb_dat_o			(wb8_s2m_i2c_s_dat	 ), //saida de dados
+   .wb_ack_o			(wb8_s2m_i2c_s_ack	 ),
+   .scl_pad_i		     	(i2c_scl_io         ), //entrada dos i2c clock
+   .scl_pad_o			(i2c_s_scl_pad_o	 ), // saida clock i2c
+   .scl_padoen_o		(i2c_s_scl_padoen_o ), // saida clock i2c
+   .sda_pad_i			(i2c_sda_io 	 ), // entrada do i2c dados
+   .sda_pad_o			(i2c_s_sda_pad_o	 ), // saida dos dados i2c
+   .sda_padoen_o		(i2c_s_sda_padoen_o ), // saida dos dados i2c
+   .slave_dat_avail		(mem_dat_avai), 
+   .stop			(mem_stop),  
+   // Interrupt
+   .wb_inta_o			(i2c_s_irq));
+
+   assign wb8_s2m_i2c_s_err = 0;
+   assign wb8_s2m_i2c_s_rty = 0;
+
+   // i2c phy lines
+`ifndef SIM
+       assign i2c_scl_io = i2c_s_scl_padoen_o ? 1'bz : i2c_s_scl_pad_o;
+       assign i2c_sda_io = i2c_s_sda_padoen_o ? 1'bz : i2c_s_sda_pad_o;
+`endif
+
+    memory_i2c Flash(
+	.dat_i 		(wb8_s2m_i2c_s_dat),
+   	.clk_i		(wb_clk),
+   	.rst_i		(wb_rst),
+	.dat_avail	(mem_dat_avai),
+	.stop		(mem_stop));
+
+	 
+/*
+   // 32-bit to 8-bit wishbone bus resize
+   wb_data_resize wb_data_resize_i2c_s (
+	// Wishbone Master interface
+	//.wbm_adr_i	(wb_m2s_i2c_adr),
+	.wbm_dat_i	(wb_m2s_i2c_dat),
+	.wbm_sel_i	(wb_m2s_i2c_sel),
+	.wbm_we_i	(wb_m2s_i2c_we ),
+	.wbm_cyc_i	(wb_m2s_i2c_cyc),
+	.wbm_stb_i	(wb_m2s_i2c_stb),
+	.wbm_cti_i	(wb_m2s_i2c_cti),
+	.wbm_bte_i	(wb_m2s_i2c_bte),
+	.wbm_dat_o	(wb_s2m_i2c_dat),
+	.wbm_ack_o	(wb_s2m_i2c_ack),
+	.wbm_err_o	(wb_s2m_i2c_err),
+	.wbm_rty_o	(wb_s2m_i2c_rty),
+	// Wishbone Slave interface
+	//.wbs_adr_o	(wb8_m2s_i2c_adr),
+	.wbs_dat_o	(wb8_m2s_i2c_dat),
+	.wbs_we_o 	(wb8_m2s_i2c_we ),
+	.wbs_cyc_o	(wb8_m2s_i2c_cyc),
+	.wbs_stb_o	(wb8_m2s_i2c_stb),
+	.wbs_cti_o	(wb8_m2s_i2c_cti),
+	.wbs_bte_o	(wb8_m2s_i2c_bte),
+	.wbs_dat_i	(wb8_s2m_i2c_dat),
+	.wbs_ack_i	(wb8_s2m_i2c_ack),
+	.wbs_err_i	(wb8_s2m_i2c_err),
+	.wbs_rty_i	(wb8_s2m_i2c_rty)
+   );
+*/
+   ////////////////////////////////////////////////////////////////////////
+   `else // !`ifdef I2C
+
+   assign wb8_s2m_i2c_dat = 0;
+   assign wb8_s2m_i2c_ack = 0;
+   assign wb8_s2m_i2c_err = 0;
+   assign wb8_s2m_i2c_rty = 0;
+
+   ////////////////////////////////////////////////////////////////////////
 
 `endif
+
+
    ////////////////////////////////////////////////////////////////////////
    //
    // OR1200 Interrupt assignment
@@ -589,7 +695,11 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
 `else
    assign or1200_pic_ints[10] = 0;
 `endif
-   assign or1200_pic_ints[11] = 0;
+`ifdef FLASH
+   assign or1200_pic_ints[10] = i2c_s_irq;
+`else
+   assign or1200_pic_ints[10] = 0;
+`endif
    assign or1200_pic_ints[12] = 0;
    assign or1200_pic_ints[13] = 0;
    assign or1200_pic_ints[14] = 0;

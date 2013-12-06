@@ -106,12 +106,12 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > uart_rx;	// External UART
 	sc_signal < bool > uart_tx;
 #endif
-
+/*
 #ifdef I2C
 	sc_signal < bool > sda;	
 	sc_signal < bool > scl;
 #endif
-
+*/
 #ifdef GPIO
 	sc_signal < unsigned int > gpio;	// GPIO interface
 #endif 
@@ -339,11 +339,12 @@ int sc_main(int argc, char *argv[])
 #ifdef GPIO
 	orpsoc->gpio_io(gpio);	// GPIO interface
 #endif 
-
+/*
 #ifdef I2C
 	orpsoc->i2c_sda_io(sda);
 	orpsoc->i2c_scl_io(scl);
 #endif
+*/
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
 	reset->rst(rst);

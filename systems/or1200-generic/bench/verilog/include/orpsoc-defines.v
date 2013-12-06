@@ -43,6 +43,7 @@
 `ifdef I2C
 `define FLASH
 `endif
+`define SIM
 /* 
 `define SPI0_SLAVE_SELECTS
 `define SPI0
