@@ -1,0 +1,1220 @@
+diff -Naur i2c/i2c_master_bit_ctrl.v i2c_Funciona/i2c_master_bit_ctrl.v
+--- i2c/i2c_master_bit_ctrl.v	2013-12-10 18:46:51.042911528 +0000
++++ i2c_Funciona/i2c_master_bit_ctrl.v	2013-12-10 18:53:11.594127352 +0000
+@@ -139,6 +139,7 @@
+ // synopsys translate_on
+ 
+ `include "i2c_master_defines.v"
++`define test
+ 
+ module i2c_master_bit_ctrl (
+     input             clk,      // system clock
+@@ -169,7 +170,9 @@
+     output reg        cmd_slave_ack,
+     input [1:0]       slave_cmd ,
+     input             sl_wait,
+-    output            slave_reset
++    output            slave_reset,
++    output	      recev_ack,  //slave ack
++    output	      sto_condition  //stop signal
+ 
+ );
+ 
+@@ -280,8 +283,8 @@
+       end
+       else if (~|filter_cnt)
+       begin
+-          fSCL <= {fSCL[1:0],cSCL[1]};
+-          fSDA <= {fSDA[1:0],cSDA[1]};
++          fSCL <= {fSCL[1:0],scl_i};
++          fSDA <= {fSDA[1:0],sda_i};
+       end
+ 
+ 
+@@ -328,7 +331,7 @@
+           sta_condition <= 1'b0;
+           sto_condition <= 1'b0;
+       end
+-      else
++      else if (~master_mode)
+       begin
+           sta_condition <= ~sSDA &  dSDA & sSCL;
+           sto_condition <=  sSDA & ~dSDA & sSCL;
+@@ -366,13 +369,19 @@
+ 
+     // generate dout signal (store SDA on rising edge of SCL)
+     always @(posedge clk)
+-      if (sSCL & ~dSCL) dout <= sSDA;
++     dout <= dSDA;
+ 
+ 
+     // generate statemachine
+ 
+     // nxt_state decoder
+     parameter [17:0] idle    = 18'b0_0000_0000_0000_0000;
++`ifdef test
++    parameter [17:0] ack_a   = 18'b1_1111_1111_1111_0000;
++    parameter [17:0] ack_b   = 18'b1_1111_1111_1111_0001;
++    parameter [17:0] ack_c   = 18'b1_1111_1111_1111_0010;
++    parameter [17:0] ack_d   = 18'b1_1111_1111_1111_0100;
++`endif
+     parameter [17:0] start_a = 18'b0_0000_0000_0000_0001;
+     parameter [17:0] start_b = 18'b0_0000_0000_0000_0010;
+     parameter [17:0] start_c = 18'b0_0000_0000_0000_0100;
+@@ -391,6 +400,9 @@
+     parameter [17:0] wr_c    = 18'b0_1000_0000_0000_0000;
+     parameter [17:0] wr_d    = 18'b1_0000_0000_0000_0000;
+ 
++    parameter [17:0] wr_ab  =  18'b0_0110_0000_0000_0000;
++
++
+     reg scl_oen_master ;
+     reg sda_oen_master ;
+     reg sda_oen_slave;
+@@ -404,6 +416,7 @@
+           scl_oen_master <=  1'b1;
+           sda_oen_master <=  1'b1;
+           sda_chk <= 1'b0;
++	  recev_ack <= 1'b0;
+       end
+       else if (rst | al)
+       begin
+@@ -412,6 +425,7 @@
+           scl_oen_master <=  1'b1;
+           sda_oen_master <=  1'b1;
+           sda_chk <= 1'b0;
++	  recev_ack <= 1'b0;
+       end
+       else
+       begin
+@@ -427,18 +441,67 @@
+                              `I2C_CMD_STOP:  c_state <= stop_a;
+                              `I2C_CMD_WRITE: c_state <= wr_a;
+                              `I2C_CMD_READ:  c_state <= rd_a;
++
++`ifndef test
+                              default:        c_state <= idle;
++`endif
++`ifdef test
++			     `I2C_CMD_S_ACK: c_state <= ack_a;
++			     default: 	     c_state <= idle;
++`endif
+                         endcase
+ 
+                         scl_oen_master <= scl_oen_master; // keep SCL in same state
+                         sda_oen_master <= sda_oen_master; // keep SDA in same state
+                         sda_chk <= 1'b0;    // don't check SDA output
+                     end
++`ifdef test
++                    ack_a:
++                    begin
++                        c_state <= ack_b;
++                        scl_oen_master <= 1'b0; // keep SCL low
++                        sda_oen_master <= 1'b1; // tri-state SDA
++
++                    end
++
++                    ack_b:
++                    begin
++                        c_state <= ack_c;
++			    if(~sda_i )//(~sda_i & ~sSDA)
++			    begin
++				//c_state <= idle;
++				recev_ack <= 1'b1;
++			    end
++                        cmd_ack <= 1'b1;
++                        scl_oen_master <= 1'b1; // set SCL high
++                        sda_oen_master <= 1'b1; // keep SDA tri-stated
++                        sda_chk <= 1'b0; // don't check SDA output
++                    end
++
++                    ack_c:
++                    begin
++                        c_state <= ack_d;
++                        scl_oen_master <= 1'b1; // keep SCL high
++                        sda_oen_master <= 1'b1; // keep SDA tri-stated
++                        sda_chk <= 1'b0; // don't check SDA output
++                    end
++
++                    ack_d:
++                    begin
++                        c_state <= idle;
++                        scl_oen_master <= 1'b0; // set SCL low
++                        sda_oen_master <= 1'b1; // keep SDA tri-stated
++                        sda_chk <= 1'b0; // don't check SDA output
++                    end
++`endif
++
++
+ 
+                     // start
+                     start_a:
+                     begin
+                         c_state <= start_b;
++	  		recev_ack <= 1'b0;
+                         scl_oen_master <= scl_oen_master; // keep SCL in same state
+                         sda_oen_master <= 1'b1;    // set SDA high
+                         sda_chk <= 1'b0;    // don't check SDA output
+@@ -455,6 +518,7 @@
+                     start_c:
+                     begin
+                         c_state <= start_d;
++                        cmd_ack <= 1'b1;
+                         scl_oen_master <= 1'b1; // keep SCL high
+                         sda_oen_master <= 1'b0; // set SDA low
+                         sda_chk <= 1'b0; // don't check SDA output
+@@ -471,7 +535,6 @@
+                     start_e:
+                     begin
+                         c_state <= idle;
+-                        cmd_ack <= 1'b1;
+                         scl_oen_master <= 1'b0; // set SCL low
+                         sda_oen_master <= 1'b0; // keep SDA low
+                         sda_chk <= 1'b0; // don't check SDA output
+@@ -481,6 +544,7 @@
+                     stop_a:
+                     begin
+                         c_state <= stop_b;
++	  		recev_ack <= 1'b0;
+                         scl_oen_master <= 1'b0; // keep SCL low
+                         sda_oen_master <= 1'b0; // set SDA low
+                         sda_chk <= 1'b0; // don't check SDA output
+@@ -489,6 +553,7 @@
+                     stop_b:
+                     begin
+                         c_state <= stop_c;
++                        cmd_ack <= 1'b1;
+                         scl_oen_master <= 1'b1; // set SCL high
+                         sda_oen_master <= 1'b0; // keep SDA low
+                         sda_chk <= 1'b0; // don't check SDA output
+@@ -505,7 +570,6 @@
+                     stop_d:
+                     begin
+                         c_state <= idle;
+-                        cmd_ack <= 1'b1;
+                         scl_oen_master <= 1'b1; // keep SCL high
+                         sda_oen_master <= 1'b1; // set SDA high
+                         sda_chk <= 1'b0; // don't check SDA output
+@@ -515,6 +579,7 @@
+                     rd_a:
+                     begin
+                         c_state <= rd_b;
++	  		recev_ack <= 1'b0;
+                         scl_oen_master <= 1'b0; // keep SCL low
+                         sda_oen_master <= 1'b1; // tri-state SDA
+                         sda_chk <= 1'b0; // don't check SDA output
+@@ -548,7 +613,17 @@
+                     // write
+                     wr_a:
+                     begin
++                        c_state <= wr_ab;
++	  		recev_ack <= 1'b0;
++                        scl_oen_master <= 1'b0; // keep SCL low
++                        sda_oen_master <= sda_oen_master;  // set SDA
++                        sda_chk <= 1'b0; // don't check SDA output (SCL low)
++                    end
++
++                    wr_ab:
++                    begin
+                         c_state <= wr_b;
++	  		recev_ack <= 1'b0;
+                         scl_oen_master <= 1'b0; // keep SCL low
+                         sda_oen_master <= din;  // set SDA
+                         sda_chk <= 1'b0; // don't check SDA output (SCL low)
+@@ -557,8 +632,9 @@
+                     wr_b:
+                     begin
+                         c_state <= wr_c;
++                        cmd_ack <= 1'b1;
+                         scl_oen_master <= 1'b1; // set SCL high
+-                        sda_oen_master <= din;  // keep SDA
++                        sda_oen_master <= sda_oen_master;  // keep SDA
+                         sda_chk <= 1'b0; // don't check SDA output yet
+                                             // allow some time for SDA and SCL to settle
+                     end
+@@ -567,16 +643,15 @@
+                     begin
+                         c_state <= wr_d;
+                         scl_oen_master <= 1'b1; // keep SCL high
+-                        sda_oen_master <= din;
+-                        sda_chk <= 1'b1; // check SDA output
++                        sda_oen_master <= sda_oen_master;
++                        sda_chk <= 1'b0; // check SDA output
+                     end
+ 
+                     wr_d:
+                     begin
+                         c_state <= idle;
+-                        cmd_ack <= 1'b1;
+                         scl_oen_master <= 1'b0; // set SCL low
+-                        sda_oen_master <= din;
++                        sda_oen_master <= sda_oen_master;
+                         sda_chk <= 1'b0; // don't check SDA output (SCL low)
+                     end
+ 
+@@ -608,9 +683,10 @@
+ 	if ((sSCL & ~dSCL) && slave_cnt != 4'h0 && slave_act)	 begin
+ 	   slave_adr <=  {slave_adr[6:0], sSDA};
+ 	   slave_cnt <=  slave_cnt -1;
++	   slave_adr_received <=  1'b1;
+ 	end
+ 	else if (slave_cnt == 4'h0 && !sta_condition && slave_act) begin
+-	   slave_adr_received <=  1'b1;
++
+ 	   slave_act <=  1'b0;
+ 	end
+ 
+@@ -641,14 +717,13 @@
+        begin
+           slave_state <=  slave_idle;
+           cmd_slave_ack   <=  1'b0;
+-          sda_oen_slave   <=  1'b1;
++          sda_oen_slave   <=  1'b0;
+           scl_oen_slave   <=  1'b1;
+        end
+-     else if (rst | sta_condition || !ena)
++     else if (rst | sta_condition)
+        begin
+           slave_state <=  slave_idle;
+           cmd_slave_ack   <=  1'b0;
+-          sda_oen_slave   <=  1'b1;
+           scl_oen_slave   <=  1'b1;
+        end
+      else
+@@ -667,7 +742,7 @@
+ 
+                  case (slave_cmd) // synopsys full_case parallel_case
+                    `I2C_SLAVE_CMD_WRITE: slave_state <=  slave_wr;
+-                   `I2C_SLAVE_CMD_READ:
++                   `I2C_SLAVE_CMD_READ:	
+ 		     begin
+ 			slave_state <=  slave_rd;
+ 			// Restore SDA high here in case we're got it low
+@@ -683,18 +758,16 @@
+ 
+             slave_wr:
+               begin
+-                 if (~sSCL & ~dSCL)  begin //SCL == LOW
++                 sda_oen_slave <=  din;
++                 if (sSCL & ~dSCL) begin
+                     slave_state <=  slave_wr_a;
+-                    sda_oen_slave <=  din;
+                  end
+               end
+ 
+             slave_wr_a:
+               begin
+-                 if (~sSCL & dSCL)  begin //SCL FALLING EDGE
+                     cmd_slave_ack <=  1'b1;
+                     slave_state <=  slave_wait_next_cmd_1;
+-                 end
+               end
+ 
+ 	    slave_wait_next_cmd_1:
+diff -Naur i2c/i2c_master_byte_ctrl.v i2c_Funciona/i2c_master_byte_ctrl.v
+--- i2c/i2c_master_byte_ctrl.v	2013-12-10 18:46:51.046911478 +0000
++++ i2c_Funciona/i2c_master_byte_ctrl.v	2013-12-10 18:57:57.386534456 +0000
+@@ -77,8 +77,7 @@
+    clk, my_addr, rst, nReset, ena, clk_cnt, start, stop, read, write, ack_in,
+    din, cmd_ack, ack_out, dout, i2c_busy, i2c_al, scl_i, sl_cont, scl_o,
+    scl_oen, sda_i, sda_o, sda_oen,slave_dat_req, slave_en, slave_dat_avail,
+-   slave_act, slave_cmd_ack
+-   );
++   slave_act, slave_cmd_ack, stop_signal);
+ 
+ 
+ 	//
+@@ -121,6 +120,7 @@
+     output reg 	slave_dat_avail;
+     output reg 	slave_act;
+     output reg 	slave_cmd_ack;
++    output stop_signal; //stop signal
+ 	//
+ 	// Variable declarations
+ 	//
+@@ -133,6 +133,7 @@
+     parameter [9:0] ST_ACK        = 10'b00_0000_1000;
+     parameter [9:0] ST_STOP       = 10'b00_0001_0000;
+     parameter [9:0] ST_SL_ACK     = 10'b00_0010_0000;
++    parameter [9:0] ST_SL_RE_ACK  = 10'b00_0110_0000;
+     parameter [9:0] ST_SL_RD      = 10'b00_0100_0000;
+     parameter [9:0] ST_SL_WR      = 10'b00_1000_0000;
+     parameter [9:0] ST_SL_WAIT    = 10'b01_0000_0000;
+@@ -194,7 +195,9 @@
+ 		.cmd_slave_ack (slave_ack),
+ 		.slave_cmd (slave_cmd_out),
+ 		.sl_wait (sl_wait),
+-		.slave_reset (slave_reset)
++		.slave_reset (slave_reset),
++		.recev_ack(receved_ask),
++		.sto_condition(stop_signal)
+ 	);
+ 
+ 	reg 		slave_adr_received_d;
+@@ -221,7 +224,7 @@
+ 	  else if (shift)
+ 	    sr <= {sr[6:0], core_rxd};
+       else if (slave_adr_received_d & slave_act)
+-        sr <=  {slave_adr[7:1], 1'b0};
++        sr <= slave_adr; 
+ 
+ 
+ 
+@@ -274,7 +277,6 @@
+ 	       cmd_ack  <= 1'b0;
+ 	       c_state  <= ST_IDLE;
+ 	       ack_out  <= 1'b0;
+-	       master_mode <=  1'b0;
+ 	       slave_cmd  <=  2'b0;
+ 	       slave_cmd_out <=  2'b0;
+ 	       slave_dat_req	<=  1'b0;
+@@ -296,16 +298,16 @@
+ 	        ST_IDLE:
+ 			  begin
+ 			     slave_act <=  1'b0;
+-			     if (slave_en & slave_adr_received &
+-				 (slave_adr[7:1] == my_addr )) begin
+-
++			     if (slave_en & slave_adr_received &(slave_adr[7:1] == my_addr )& ~master_mode)
++			     begin
+ 				c_state  <=  ST_SL_ACK;
+ 				master_mode <=  1'b0;
+ 				slave_act <=  1'b1;
+ 				slave_cmd <=  `I2C_SLAVE_CMD_WRITE;
+ 				core_txd <=  1'b0;
++			    end
++
+ 
+-			 end
+ 		 else if (go && !slave_act )
+ 	            begin
+ 	                if (start)
+@@ -339,7 +341,7 @@
+ 				 slave_cmd <=  `I2C_SLAVE_CMD_NOP;
+ 				 if (slave_ack) begin
+ 					if (cnt_done) begin
+-					       c_state   <=  ST_SL_ACK;
++					       c_state   <=  ST_SL_RE_ACK;
+ 					       slave_cmd <=  `I2C_SLAVE_CMD_READ;
+ 					    end
+ 					    else
+@@ -369,10 +371,32 @@
+ 	              shift    <=  1'b1;
+ 	           end
+ 	      end
++
++	    ST_SL_ACK:
++              begin
++		 slave_cmd <=  `I2C_SLAVE_CMD_NOP;
++		 if (slave_ack)  begin
++                    ack_out <=  core_rxd;
++                    slave_cmd_ack  <=  1'b1;
++
++                    c_state   <=  ST_SL_WAIT;
++	            if (slave_adr[0]) begin // I2C read request
++	               slave_dat_req	<=  1'b1;
++	            end
++	            else begin              // I2C write request
++	               slave_dat_avail	<=  1'b1;
++	            end
++	         end
++	         else begin
++	            core_txd <=  1'b0;
++	         end //!if (slave_ack)  begin
++	       end
++
++
+             ST_SL_WAIT: //Wait for interupt-clear and hold SCL in waitstate
+               begin
+                  sl_wait <=  1'b1;
+-                 if (sl_cont) begin
++                 if (sl_cont || slave_act) begin
+                     sl_wait <=  1'b0;
+                     ld <=  1'b1;
+                     slave_dat_req	<=  1'b0;
+@@ -391,31 +415,48 @@
+ 	         slave_cmd <=  `I2C_SLAVE_CMD_READ;
+ 	      end
+ 
+-            ST_SL_ACK:
++            ST_SL_RE_ACK:
+               begin
+ 		 slave_cmd <=  `I2C_SLAVE_CMD_NOP;
+ 		 if (slave_ack)  begin
+                     ack_out <=  core_rxd;
+                     slave_cmd_ack  <=  1'b1;
+-                    if (!core_rxd) begin // Valid ack recived
++                    if (!core_rxd || !slave_adr[0]) begin // Valid ack recived 
+                        // generate slave command acknowledge signal if
+ 		       // succesful transfer
+-                       c_state   <=  ST_SL_WAIT;
+ 	               if (slave_adr[0]) begin // I2C read request
+ 	                  slave_dat_req	<=  1'b1;
+ 	               end
+ 	               else begin              // I2C write request
+ 	                  slave_dat_avail	<=  1'b1;
+ 	               end
++//
++                 sl_wait <=  1'b1;
++                 if (sl_cont || slave_act) begin
++                    sl_wait <=  1'b0;
++                    ld <=  1'b1;
++                    slave_dat_req	<=  1'b0;
++                    slave_dat_avail	<=  1'b0;
++	         end
++              if (slave_adr[0]) begin
++	         c_state   <=  ST_SL_RD;
++	         slave_cmd <=  `I2C_SLAVE_CMD_WRITE;
++	      end
++	      else begin
++	         c_state  <=  ST_SL_WR;
++	         slave_cmd <=  `I2C_SLAVE_CMD_READ;
++	      end
++
++//
+ 	            end
+ 	            else begin
+ 	               c_state   <=  ST_IDLE;
+-	            end
++	            end  //! (!core_rxd)
+ 	         end
+ 	         else begin
+ 	            core_txd <=  1'b0;
+-	         end
+-	            end
++	         end //!if (slave_ack)  begin
++	       end
+ 
+ 	        ST_START:
+ 	          if (core_ack)
+@@ -439,7 +480,7 @@
+ 	            if (cnt_done)
+ 	              begin
+ 	                  c_state  <= ST_ACK;
+-	                  core_cmd <= `I2C_CMD_READ;
++	                  core_cmd <= `I2C_CMD_S_ACK; // I2C_CMD_NOP; //
+ 	              end
+ 	            else
+ 	              begin
+@@ -469,28 +510,30 @@
+ 	        ST_ACK:
+ 	          if (core_ack)
+ 	            begin
+-	               if (stop)
+-	                 begin
+-	                     c_state  <= ST_STOP;
+-	                     core_cmd <= `I2C_CMD_STOP;
+-	                 end
+-	               else
+-	                 begin
+-	                     c_state  <= ST_IDLE;
+-	                     core_cmd <= `I2C_CMD_NOP;
+-
+-	                     // generate command acknowledge signal
+-	                     cmd_ack  <= 1'b1;
+-	                 end
+-
+-	                 // assign ack_out output to bit_controller_rxd (contains last received bit)
+-	                 ack_out <= core_rxd;
+-
+-	                 core_txd <= 1'b1;
++			if(receved_ask | read)
++			begin
++	               	   if (stop)
++	                   begin
++	                      c_state  <= ST_STOP;
++	                      core_cmd <= `I2C_CMD_STOP;
++	                   end
++	                   else
++	                   begin
++	                       c_state  <= ST_IDLE;
++	                       core_cmd <= `I2C_CMD_NOP;
++	                       // generate command acknowledge signal
++	                       cmd_ack  <= 1'b1;
++ 			   end //!if (stop)
++
++	                   // assign ack_out output to bit_controller_rxd (contains last received bit)
++	                   ack_out <= core_rxd;
++			end //!	if(1'b0)
+ 	             end
+ 	           else
+ 	             core_txd <= ack_in;
+ 
++
++
+ 	        ST_STOP:
+ 	          if (core_ack)
+ 	            begin
+diff -Naur i2c/i2c_master_defines.v i2c_Funciona/i2c_master_defines.v
+--- i2c/i2c_master_defines.v	2013-12-10 18:46:51.046911478 +0000
++++ i2c_Funciona/i2c_master_defines.v	2013-12-06 19:20:11.711534080 +0000
+@@ -57,7 +57,9 @@
+ `define I2C_CMD_STOP  4'b0010
+ `define I2C_CMD_WRITE 4'b0100
+ `define I2C_CMD_READ  4'b1000
++`define I2C_CMD_S_ACK 4'b1111
+ 
+ `define I2C_SLAVE_CMD_WRITE 2'b01
+ `define I2C_SLAVE_CMD_READ 2'b10
+ `define I2C_SLAVE_CMD_NOP 2'b00
++
+diff -Naur i2c/i2c_master_top.v i2c_Funciona/i2c_master_top.v
+--- i2c/i2c_master_top.v	2013-12-10 18:46:51.046911478 +0000
++++ i2c_Funciona/i2c_master_top.v	2013-12-10 19:02:18.599250566 +0000
+@@ -79,11 +79,11 @@
+   (
+ 	wb_clk_i, wb_rst_i, arst_i, wb_adr_i, wb_dat_i, wb_dat_o,
+ 	wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_inta_o,
+-	scl_pad_i, scl_pad_o, scl_padoen_o, sda_pad_i, sda_pad_o, sda_padoen_o );
++	scl_pad_i, scl_pad_o, scl_padoen_o, sda_pad_i, sda_pad_o, sda_padoen_o,slave_dat_avail,stop );
+ 
+ 	// parameters
+     parameter ARST_LVL = 1'b1; // asynchronous reset level
+-    parameter [6:0] DEFAULT_SLAVE_ADDR  = 7'b111_1110;
++    parameter [6:0] DEFAULT_SLAVE_ADDR  = 7'hA0;
+ 	//
+ 	// inputs & outputs
+ 	//
+@@ -116,6 +116,10 @@
+ 	output sda_pad_o;       // SDA-line output (always 1'b0)
+ 	output sda_padoen_o;    // SDA-line output enable (active low)
+ 
++	// mem
++	output slave_dat_avail;
++	output stop;
++
+ 
+ 	//
+ 	// variable declarations
+@@ -128,7 +132,7 @@
+ 	wire [ 7:0] rxr;  // receive register
+ 	reg  [ 7:0] cr;   // command register
+ 	wire [ 7:0] sr;   // status register
+-	reg  [ 6:0] sladr;// slave address register
++	reg  [ 6:0] sladr;// slave address registe
+ 
+ 	// done signal: command completed, clear command register
+ 	wire done;
+@@ -147,6 +151,7 @@
+ 	wire i2c_al;      // i2c bus arbitration lost
+ 	reg  al;          // status register arbitration lost bit
+ 	reg  slave_mode;
++	reg  status; 	  // if can receved new instruction
+ 	//
+ 	// module body
+ 	//
+@@ -160,20 +165,30 @@
+ 	// generate acknowledge output signal ...
+ 	always @(posedge wb_clk_i)
+     // ... because timing is always honored.
+-    wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o;
++    wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o & status;
++
++	// assign DAT_O
++	always @(posedge wb_clk_i)
++	   if (slave_act)
++	   begin
++		if(slave_dat_avail)
++		    wb_dat_o <= rxr;
++	   end
+ 
+ 	// assign DAT_O
+ 	always @(posedge wb_clk_i)
+ 	begin
+ 	  case (wb_adr_i) // synopsys parallel_case
+-	    3'b000: wb_dat_o <= prer[ 7:0];
+-	    3'b001: wb_dat_o <= prer[15:8];
+-	    3'b010: wb_dat_o <= ctr;
+-	    3'b011: wb_dat_o <= rxr; // write is transmit register (txr)
+-	    3'b100: wb_dat_o <= sr;  // write is command register (cr)
+-	    3'b101: wb_dat_o <= txr; // Debug out of TXR
+-	    3'b110: wb_dat_o <= cr;  // Debug out control reg
+-	    3'b111: wb_dat_o <= {1'b0,sladr};   // slave address register
++
++	         3'b011 : //read
++			begin
++				wb_dat_o <= rxr;
++			end
++	         3'b100 : //read last word (read + Nack + stop)
++			begin
++				wb_dat_o <= rxr;
++			end
++
+ 	  endcase
+ 	end
+ 
+@@ -184,25 +199,52 @@
+ 	        prer <= 16'hffff;
+ 	        ctr  <=  8'h0;
+ 	        txr  <=  8'h0;
+-	        sladr <=  DEFAULT_SLAVE_ADDR;
++	        sladr <= 7'h50;
++		status <=1'b1;
+ 	    end
+ 	  else if (wb_rst_i)
+ 	    begin
+ 	        prer <= 16'hffff;
+ 	        ctr  <=  8'h0;
+ 	        txr  <=  8'h0;
+-	        sladr <=  DEFAULT_SLAVE_ADDR;
++	        sladr <= 7'h50; 
++		status <=1'b1;
+ 	    end
+ 	  else
+ 	    if (wb_wacc)
++	    begin
++	      status <=1'b0;
+ 	      case (wb_adr_i) // synopsys parallel_case
+-	         3'b000 : prer [ 7:0] <= wb_dat_i;
+-	         3'b001 : prer [15:8] <= wb_dat_i;
+-	         3'b010 : ctr         <= wb_dat_i;
+-	         3'b011 : txr         <= wb_dat_i;
+-	         3'b111 : sladr       <=  wb_dat_i[6:0];
++	         3'b000 : //send star and word
++			begin
++			 	//prer [ 7:0] <= wb_dat_i;
++			 	cr <= 8'b10010000;
++				txr <= wb_dat_i;
++			end
++	         3'b001 : // write
++			begin
++			 	txr <= wb_dat_i;
++			 	cr <= 8'b00010000;
++			end
++
++	         3'b010 : //write last word( word + stop)
++			begin
++			 	txr <= wb_dat_i;
++			 	cr <= 8'b01010000;
++			end
++
++	         3'b011 : //read
++			begin
++			 	cr <= 8'b00100000;
++			end
++	         3'b100 : //read last word (read + Nack + stop)
++			begin
++			 	cr <= 8'b01101000;
++			end
++
+ 	         default: ;
+ 	      endcase
++	    end
+ 
+ 	// generate command register (special case)
+ 	always @(posedge wb_clk_i or negedge rst_i)
+@@ -219,8 +261,10 @@
+ 	    begin
+ 	        cr[1] <=  1'b0;
+ 	        if (done | i2c_al)
++		begin
+ 	          cr[7:4] <= 4'h0;           // clear command bits when done
+-	                                        // or when aribitration lost
++	          status <=1'b1;            // or when aribitration lost
++		end
+ 	        cr[2] <=  1'b0;             // reserved bits
+ 	        cr[0]   <= 1'b0;             // clear IRQ_ACK bit
+ 	    end
+@@ -238,7 +282,7 @@
+ 	// decode control register
+ 	assign core_en = ctr[7];
+ 	assign ien = ctr[6];
+-	assign slave_en = ctr[5];
++	assign slave_en = 1'b1;
+ 
+ 
+ 	// hookup byte controller block
+@@ -271,7 +315,8 @@
+ 		.slave_dat_req (slave_dat_req),
+ 		.slave_dat_avail (slave_dat_avail),
+ 		.slave_act (slave_act),
+-		.slave_cmd_ack (slave_done)
++		.slave_cmd_ack (slave_done),
++		.stop_signal(stop)
+ 	);
+ 
+ 	// status register block + interrupt request signal
+diff -Naur i2c/.svn/all-wcprops i2c_Funciona/.svn/all-wcprops
+--- i2c/.svn/all-wcprops	2013-12-10 18:46:51.010911931 +0000
++++ i2c_Funciona/.svn/all-wcprops	2013-12-06 19:20:11.715534030 +0000
+@@ -3,6 +3,24 @@
+ V 44
+ /ocsvn/i2c/!svn/ver/74/i2c/trunk/rtl/verilog
+ END
++i2c_master_bit_ctrl.v
++K 25
++svn:wc:ra_dav:version-url
++V 66
++/ocsvn/i2c/!svn/ver/74/i2c/trunk/rtl/verilog/i2c_master_bit_ctrl.v
++END
++i2c_master_top.v
++K 25
++svn:wc:ra_dav:version-url
++V 61
++/ocsvn/i2c/!svn/ver/73/i2c/trunk/rtl/verilog/i2c_master_top.v
++END
++i2c_master_byte_ctrl.v
++K 25
++svn:wc:ra_dav:version-url
++V 67
++/ocsvn/i2c/!svn/ver/68/i2c/trunk/rtl/verilog/i2c_master_byte_ctrl.v
++END
+ i2c_master_byte_ctrl.v
+ K 25
+ svn:wc:ra_dav:version-url
+@@ -21,15 +39,3 @@
+ V 56
+ /ocsvn/i2c/!svn/ver/68/i2c/trunk/rtl/verilog/timescale.v
+ END
+-i2c_master_bit_ctrl.v
+-K 25
+-svn:wc:ra_dav:version-url
+-V 66
+-/ocsvn/i2c/!svn/ver/74/i2c/trunk/rtl/verilog/i2c_master_bit_ctrl.v
+-END
+-i2c_master_top.v
+-K 25
+-svn:wc:ra_dav:version-url
+-V 61
+-/ocsvn/i2c/!svn/ver/73/i2c/trunk/rtl/verilog/i2c_master_top.v
+-END
+diff -Naur i2c/.svn/all-wcprops.orig i2c_Funciona/.svn/all-wcprops.orig
+--- i2c/.svn/all-wcprops.orig	1970-01-01 01:00:00.000000000 +0100
++++ i2c_Funciona/.svn/all-wcprops.orig	2013-12-06 19:20:11.675534533 +0000
+@@ -0,0 +1,35 @@
++K 25
++svn:wc:ra_dav:version-url
++V 44
++/ocsvn/i2c/!svn/ver/74/i2c/trunk/rtl/verilog
++END
++i2c_master_bit_ctrl.v
++K 25
++svn:wc:ra_dav:version-url
++V 66
++/ocsvn/i2c/!svn/ver/74/i2c/trunk/rtl/verilog/i2c_master_bit_ctrl.v
++END
++i2c_master_top.v
++K 25
++svn:wc:ra_dav:version-url
++V 61
++/ocsvn/i2c/!svn/ver/73/i2c/trunk/rtl/verilog/i2c_master_top.v
++END
++i2c_master_byte_ctrl.v
++K 25
++svn:wc:ra_dav:version-url
++V 67
++/ocsvn/i2c/!svn/ver/68/i2c/trunk/rtl/verilog/i2c_master_byte_ctrl.v
++END
++i2c_master_defines.v
++K 25
++svn:wc:ra_dav:version-url
++V 65
++/ocsvn/i2c/!svn/ver/68/i2c/trunk/rtl/verilog/i2c_master_defines.v
++END
++timescale.v
++K 25
++svn:wc:ra_dav:version-url
++V 56
++/ocsvn/i2c/!svn/ver/68/i2c/trunk/rtl/verilog/timescale.v
++END
+diff -Naur i2c/.svn/all-wcprops.rej i2c_Funciona/.svn/all-wcprops.rej
+--- i2c/.svn/all-wcprops.rej	1970-01-01 01:00:00.000000000 +0100
++++ i2c_Funciona/.svn/all-wcprops.rej	2013-12-06 19:20:11.715534030 +0000
+@@ -0,0 +1,12 @@
++--- .svn/all-wcprops	2013-12-06 19:08:46.748145236 +0000
+++++ .svn/all-wcprops	2013-11-29 20:30:36.053310756 +0000
++@@ -33,9 +39,3 @@
++ V 61
++ /ocsvn/i2c/!svn/ver/73/i2c/trunk/rtl/verilog/i2c_master_top.v
++ END
++-i2c_master_byte_ctrl.v
++-K 25
++-svn:wc:ra_dav:version-url
++-V 67
++-/ocsvn/i2c/!svn/ver/68/i2c/trunk/rtl/verilog/i2c_master_byte_ctrl.v
++-END
+diff -Naur i2c/.svn/entries i2c_Funciona/.svn/entries
+--- i2c/.svn/entries	2013-12-10 18:46:51.010911931 +0000
++++ i2c_Funciona/.svn/entries	2013-12-06 19:20:11.679534483 +0000
+@@ -26,16 +26,16 @@
+ 
+ de7ef3d1-e315-45f5-93a0-b3ed24765857
+ 
+-i2c_master_defines.v
++i2c_master_bit_ctrl.v
+ file
+ 
+ 
+ 
+ 
+-2013-12-10T18:46:51.002912Z
+-b220b22dedef9e43dfb5da4e81d7559b
+-2001-11-05T11:59:25.000000Z
+-14
++2013-12-06T19:20:11.675534Z
++b1ff012cc75f27d1e9f26bbd0273e1a2
++2010-01-12T16:36:48.517940Z
++74
+ rherveille
+ 
+ 
+@@ -58,18 +58,18 @@
+ 
+ 
+ 
+-3011
++21121
+ 
+-timescale.v
++i2c_master_top.v
+ file
+ 
+ 
+ 
+ 
+-2013-12-10T18:46:51.002912Z
+-37271dfad171745685f638454b851a03
+-2001-09-24T12:21:51.000000Z
+-10
++2013-12-06T19:20:11.675534Z
++38b9bdc4d5ec1a4ffbaeceacca022939
++2010-01-12T16:35:28.806834Z
++73
+ rherveille
+ 
+ 
+@@ -92,18 +92,18 @@
+ 
+ 
+ 
+-23
++10053
+ 
+-i2c_master_bit_ctrl.v
++i2c_master_byte_ctrl.v
+ file
+ 
+ 
+ 
+ 
+-2013-12-10T18:46:51.002912Z
+-b1ff012cc75f27d1e9f26bbd0273e1a2
+-2010-01-12T16:36:48.517940Z
+-74
++2013-12-06T19:20:11.675534Z
++b0b9eb5b628c41b59b96ff195835fb67
++2009-01-19T20:29:26.000000Z
++62
+ rherveille
+ 
+ 
+@@ -126,18 +126,18 @@
+ 
+ 
+ 
+-21121
++10547
+ 
+-i2c_master_top.v
++i2c_master_defines.v
+ file
+ 
+ 
+ 
+ 
+-2013-12-10T18:46:51.002912Z
+-38b9bdc4d5ec1a4ffbaeceacca022939
+-2010-01-12T16:35:28.806834Z
+-73
++2013-12-06T19:20:11.675534Z
++b220b22dedef9e43dfb5da4e81d7559b
++2001-11-05T11:59:25.000000Z
++14
+ rherveille
+ 
+ 
+@@ -160,18 +160,18 @@
+ 
+ 
+ 
+-10053
++3011
+ 
+-i2c_master_byte_ctrl.v
++timescale.v
+ file
+ 
+ 
+ 
+ 
+-2013-12-10T18:46:51.002912Z
+-b0b9eb5b628c41b59b96ff195835fb67
+-2009-01-19T20:29:26.000000Z
+-62
++2013-12-06T19:20:11.675534Z
++37271dfad171745685f638454b851a03
++2001-09-24T12:21:51.000000Z
++10
+ rherveille
+ 
+ 
+@@ -194,5 +194,5 @@
+ 
+ 
+ 
+-10547
++23
+ 
+diff -Naur i2c/.svn/entries.orig i2c_Funciona/.svn/entries.orig
+--- i2c/.svn/entries.orig	1970-01-01 01:00:00.000000000 +0100
++++ i2c_Funciona/.svn/entries.orig	2013-12-06 19:20:11.000000000 +0000
+@@ -0,0 +1,198 @@
++10
++
++dir
++76
++http://opencores.org/ocsvn/i2c/i2c/trunk/rtl/verilog
++http://opencores.org/ocsvn/i2c
++
++
++
++2010-01-12T16:36:48.517940Z
++74
++rherveille
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++de7ef3d1-e315-45f5-93a0-b3ed24765857
++
++i2c_master_bit_ctrl.v
++file
++
++
++
++
++2013-12-06T19:20:11.675534Z
++b1ff012cc75f27d1e9f26bbd0273e1a2
++2010-01-12T16:36:48.517940Z
++74
++rherveille
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++21121
++
++i2c_master_top.v
++file
++
++
++
++
++2013-12-06T19:20:11.675534Z
++38b9bdc4d5ec1a4ffbaeceacca022939
++2010-01-12T16:35:28.806834Z
++73
++rherveille
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++10053
++
++i2c_master_byte_ctrl.v
++file
++
++
++
++
++2013-12-06T19:20:11.675534Z
++b0b9eb5b628c41b59b96ff195835fb67
++2009-01-19T20:29:26.000000Z
++62
++rherveille
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++10547
++
++i2c_master_defines.v
++file
++
++
++
++
++2013-12-06T19:20:11.675534Z
++b220b22dedef9e43dfb5da4e81d7559b
++2001-11-05T11:59:25.000000Z
++14
++rherveille
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++3011
++
++timescale.v
++file
++
++
++
++
++2013-12-06T19:20:11.675534Z
++37271dfad171745685f638454b851a03
++2001-09-24T12:21:51.000000Z
++10
++rherveille
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++23
++
+diff -Naur i2c/.svn/entries.rej i2c_Funciona/.svn/entries.rej
+--- i2c/.svn/entries.rej	1970-01-01 01:00:00.000000000 +0100
++++ i2c_Funciona/.svn/entries.rej	2013-12-06 19:20:11.715534030 +0000
+@@ -0,0 +1,47 @@
++--- .svn/entries	2013-12-06 19:08:46.748145236 +0000
+++++ .svn/entries	2013-11-29 20:30:36.053310756 +0000
++@@ -32,7 +32,7 @@
++ 
++ 
++ 
++-2013-12-06T19:08:46.748145Z
+++2013-11-29T20:30:36.041310Z
++ b1ff012cc75f27d1e9f26bbd0273e1a2
++ 2010-01-12T16:36:48.517940Z
++ 74
++@@ -66,7 +66,7 @@
++ 
++ 
++ 
++-2013-12-06T19:08:46.748145Z
+++2013-11-29T20:30:36.045310Z
++ 38b9bdc4d5ec1a4ffbaeceacca022939
++ 2010-01-12T16:35:28.806834Z
++ 73
++@@ -100,7 +100,7 @@
++ 
++ 
++ 
++-2013-12-06T19:08:46.748145Z
+++2013-11-29T20:30:36.041310Z
++ b0b9eb5b628c41b59b96ff195835fb67
++ 2009-01-19T20:29:26.000000Z
++ 62
++@@ -134,7 +134,7 @@
++ 
++ 
++ 
++-2013-12-06T19:08:46.748145Z
+++2013-11-29T20:30:36.041310Z
++ b220b22dedef9e43dfb5da4e81d7559b
++ 2001-11-05T11:59:25.000000Z
++ 14
++@@ -168,7 +168,7 @@
++ 
++ 
++ 
++-2013-12-06T19:08:46.748145Z
+++2013-11-29T20:30:36.041310Z
++ 37271dfad171745685f638454b851a03
++ 2001-09-24T12:21:51.000000Z
++ 10
