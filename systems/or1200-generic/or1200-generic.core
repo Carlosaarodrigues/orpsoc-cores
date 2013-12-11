@@ -7,6 +7,7 @@ depend =
  ram_wb
  vlog_tb_utils
  jtag_tap
+ wb_intercon
  adv_debug_sys
  uart16550
  gpio
