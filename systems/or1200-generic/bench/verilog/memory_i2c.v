@@ -5,8 +5,11 @@ module memory_i2c (
     input 		       	clk_i,
     input 		 	rst_i,
     input[7:0] 		  	dat_i,
+    output[7:0] 		dat_o,
     input			dat_avail,
-    input 		 	stop);
+    input			dat_req,
+    input 		 	stop,
+    input			start);
 
 
     wire[7:0]	adr_m_i;
@@ -16,7 +19,6 @@ module memory_i2c (
     wire	cyc_m_i;
     wire	stb_m_i;
     wire[2:0]	cti_m_i;
-    wire[1:0]	bte_m_i;
     wire[7:0]	dat_m_o;
     wire	ack_m_o;
     wire	err_m_o;
@@ -58,9 +60,10 @@ module memory_i2c (
                     begin
 		   	if(data_avaiable)
 			begin
-                            W_R <= dat_i[0];
                             state <= adresse;
 			end
+		   	if(dat_req)
+			    state <= read;
 		    end
 
 
@@ -69,13 +72,31 @@ module memory_i2c (
 		    begin
 		   	if(data_avaiable)
 			begin
+			    state <= write;
 			    adr <= dat_i;
-                            case (W_R) 
-                             	1'b0 : state <= write;//
-                             	1'b1:  state <= read;//
+			end
+			if(start)
+			    state <= idle;
 
-                             	default:        state <= idle;
-			    endcase
+		    end
+
+		    read:
+		    begin
+			    adr_m_i <= adr;
+			    cyc_m_i <= 1'b1;
+			    stb_m_i <= 1'b1;
+			    state <= read_a;
+		    end
+
+		    read_a:
+		    begin
+			if(ack_m_o)
+			begin
+			    dat_o <= dat_m_o;
+			    cyc_m_i <= 1'b0;
+			    stb_m_i <= 1'b0;
+			    adr <= adr +1;
+			    state <= idle;
 			end
 		    end
 		   
@@ -92,6 +113,8 @@ module memory_i2c (
 			end
 			if (stop)
 			   state <= idle;
+			if(start)
+			    state <= idle;
 		    end
 
 		    write_a:
@@ -109,11 +132,12 @@ module memory_i2c (
 
 		endcase
 
-parameter [17:0] idle    = 18'b0_0000_0000_0000_0000;
-parameter [17:0] adresse = 18'b0_0000_0000_0000_0001;
-parameter [17:0] write 	 = 18'b0_0000_0000_0000_0010;
-parameter [17:0] write_a = 18'b0_0000_0000_0000_0100;
-parameter [17:0] read    = 18'b0_0000_0001_0000_0000;
+parameter [17:0] idle    = 6'b00_0000;
+parameter [17:0] adresse = 6'b00_0001;
+parameter [17:0] write 	 = 6'b00_0010;
+parameter [17:0] write_a = 6'b00_0100;
+parameter [17:0] read    = 6'b01_0000;
+parameter [17:0] read_a  = 6'b10_0000;
 
 
 
@@ -138,7 +162,7 @@ parameter [17:0] read    = 18'b0_0000_0001_0000_0000;
       .wb_cyc_i	(cyc_m_i),
       .wb_stb_i	(stb_m_i),
       .wb_cti_i	(cti_m_i),
-      .wb_bte_i	(bte_m_i),
+      .wb_bte_i	(8'b01),
       .wb_dat_o	(dat_m_o),
       .wb_ack_o	(ack_m_o),
       .wb_err_o (err_m_o),

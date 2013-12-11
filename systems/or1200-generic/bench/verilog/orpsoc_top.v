@@ -590,7 +590,9 @@ wire		wb8_s2m_i2c_s_rty;
 
 //men
 wire 		mem_dat_avai;
+wire		mem_dat_req;
 wire		mem_stop;
+wire		mem_start;
 
 
 i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_slave (
@@ -610,8 +612,10 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_slave (
    .sda_pad_i			(i2c_sda_io 	 ), // entrada do i2c dados
    .sda_pad_o			(i2c_s_sda_pad_o	 ), // saida dos dados i2c
    .sda_padoen_o		(i2c_s_sda_padoen_o ), // saida dos dados i2c
-   .slave_dat_avail		(mem_dat_avai), 
-   .stop			(mem_stop),  
+   .slave_dat_avail		(mem_dat_avai),
+   .slave_dat_req 		(mem_dat_req),
+   .stop			(mem_stop),
+   .start			(mem_start),  
    // Interrupt
    .wb_inta_o			(i2c_s_irq));
 
@@ -629,41 +633,12 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_slave (
    	.clk_i		(wb_clk),
    	.rst_i		(wb_rst),
 	.dat_avail	(mem_dat_avai),
-	.stop		(mem_stop));
+	.dat_req	(mem_dat_req),
+	.stop		(mem_stop),
+	.start		(mem_start));
 
-	 
-/*
-   // 32-bit to 8-bit wishbone bus resize
-   wb_data_resize wb_data_resize_i2c_s (
-	// Wishbone Master interface
-	//.wbm_adr_i	(wb_m2s_i2c_adr),
-	.wbm_dat_i	(wb_m2s_i2c_dat),
-	.wbm_sel_i	(wb_m2s_i2c_sel),
-	.wbm_we_i	(wb_m2s_i2c_we ),
-	.wbm_cyc_i	(wb_m2s_i2c_cyc),
-	.wbm_stb_i	(wb_m2s_i2c_stb),
-	.wbm_cti_i	(wb_m2s_i2c_cti),
-	.wbm_bte_i	(wb_m2s_i2c_bte),
-	.wbm_dat_o	(wb_s2m_i2c_dat),
-	.wbm_ack_o	(wb_s2m_i2c_ack),
-	.wbm_err_o	(wb_s2m_i2c_err),
-	.wbm_rty_o	(wb_s2m_i2c_rty),
-	// Wishbone Slave interface
-	//.wbs_adr_o	(wb8_m2s_i2c_adr),
-	.wbs_dat_o	(wb8_m2s_i2c_dat),
-	.wbs_we_o 	(wb8_m2s_i2c_we ),
-	.wbs_cyc_o	(wb8_m2s_i2c_cyc),
-	.wbs_stb_o	(wb8_m2s_i2c_stb),
-	.wbs_cti_o	(wb8_m2s_i2c_cti),
-	.wbs_bte_o	(wb8_m2s_i2c_bte),
-	.wbs_dat_i	(wb8_s2m_i2c_dat),
-	.wbs_ack_i	(wb8_s2m_i2c_ack),
-	.wbs_err_i	(wb8_s2m_i2c_err),
-	.wbs_rty_i	(wb8_s2m_i2c_rty)
-   );
-*/
    ////////////////////////////////////////////////////////////////////////
-   `else // !`ifdef I2C
+`else // !`ifdef I2C
 
    assign wb8_s2m_i2c_dat = 0;
    assign wb8_s2m_i2c_ack = 0;
