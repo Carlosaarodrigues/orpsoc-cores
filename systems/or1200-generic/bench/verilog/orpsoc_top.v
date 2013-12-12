@@ -576,51 +576,16 @@ wire 		i2c_s_scl_padoen_o;
 wire 		i2c_s_sda_pad_o;
 wire 		i2c_s_sda_padoen_o;
 
-wire [31:0]	wb8_m2s_i2c_s_adr;
-wire [1:0]	wb8_m2s_i2c_s_bte;
-wire [2:0]	wb8_m2s_i2c_s_cti;
-wire		wb8_m2s_i2c_s_cyc;
-wire [7:0]	wb8_m2s_i2c_s_dat;
-wire		wb8_m2s_i2c_s_stb;
-wire		wb8_m2s_i2c_s_we;
-wire [7:0] 	wb8_s2m_i2c_s_dat;
-wire		wb8_s2m_i2c_s_ack;
-wire		wb8_s2m_i2c_s_err;
-wire		wb8_s2m_i2c_s_rty;
-
-//men
-wire 		mem_dat_avai;
-wire		mem_dat_req;
-wire		mem_stop;
-wire		mem_start;
-
-
-i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_slave (
-   .wb_clk_i			(wb_clk),
-   .wb_rst_i			(wb_rst),
-   .arst_i			(wb_rst),
-   .wb_adr_i			(wb8_m2s_i2c_s_adr[i2c_wb_adr_width-1:0]), //enderaço dos dados
-   .wb_dat_i			(wb8_m2s_i2c_s_dat	 ), //dados entrada
-   .wb_we_i			(wb8_m2s_i2c_s_we	 ),
-   .wb_cyc_i			(wb8_m2s_i2c_s_cyc	 ),
-   .wb_stb_i			(wb8_m2s_i2c_s_stb	 ),
-   .wb_dat_o			(wb8_s2m_i2c_s_dat	 ), //saida de dados
-   .wb_ack_o			(wb8_s2m_i2c_s_ack	 ),
-   .scl_pad_i		     	(i2c_scl_io         ), //entrada dos i2c clock
-   .scl_pad_o			(i2c_s_scl_pad_o	 ), // saida clock i2c
-   .scl_padoen_o		(i2c_s_scl_padoen_o ), // saida clock i2c
-   .sda_pad_i			(i2c_sda_io 	 ), // entrada do i2c dados
-   .sda_pad_o			(i2c_s_sda_pad_o	 ), // saida dos dados i2c
-   .sda_padoen_o		(i2c_s_sda_padoen_o ), // saida dos dados i2c
-   .slave_dat_avail		(mem_dat_avai),
-   .slave_dat_req 		(mem_dat_req),
-   .stop			(mem_stop),
-   .start			(mem_start),  
-   // Interrupt
-   .wb_inta_o			(i2c_s_irq));
-
-   assign wb8_s2m_i2c_s_err = 0;
-   assign wb8_s2m_i2c_s_rty = 0;
+memory_i2c Flash(
+   .clk_i		(wb_clk),
+   .rst_i		(wb_rst),
+   .scl_i		(i2c_scl_io),
+   .scl_padoen_o	(i2c_s_scl_padoen_o),
+   .scl_pad_o		(i2c_s_scl_pad_o),
+   .sda_i		(i2c_sda_io),
+   .sda_padoen_o	(i2c_s_sda_padoen_o),
+   .sda_pad_o		(i2c_s_sda_pad_o),
+   .irq_o		(i2c_s_irq));
 
    // i2c phy lines
 `ifndef SIM
@@ -628,24 +593,6 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_slave (
        assign i2c_sda_io = i2c_s_sda_padoen_o ? 1'bz : i2c_s_sda_pad_o;
 `endif
 
-    memory_i2c Flash(
-	.dat_i 		(wb8_s2m_i2c_s_dat),
-   	.clk_i		(wb_clk),
-   	.rst_i		(wb_rst),
-	.dat_avail	(mem_dat_avai),
-	.dat_req	(mem_dat_req),
-	.stop		(mem_stop),
-	.start		(mem_start));
-
-   ////////////////////////////////////////////////////////////////////////
-`else // !`ifdef I2C
-
-   assign wb8_s2m_i2c_dat = 0;
-   assign wb8_s2m_i2c_ack = 0;
-   assign wb8_s2m_i2c_err = 0;
-   assign wb8_s2m_i2c_rty = 0;
-
-   ////////////////////////////////////////////////////////////////////////
 
 `endif
 

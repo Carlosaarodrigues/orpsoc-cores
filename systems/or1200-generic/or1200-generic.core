@@ -12,6 +12,7 @@ depend =
  uart16550
  gpio
  i2c
+ memory_i2c
 
 simulators = verilator icarus modelsim
 
@@ -20,7 +21,6 @@ src_files =
  bench/verilog/wb_intercon.v
  bench/verilog/rom.v
  bench/verilog/orpsoc_top.v
- bench/verilog/memory_i2c.v
 tb_private_src_files = 
  bench/verilog/orpsoc_tb.v
 include_files =
