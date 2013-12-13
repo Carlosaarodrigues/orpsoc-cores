@@ -39,14 +39,14 @@
 `define UART0
 `define GPIO
 `define BOOTROM
+`define SIM
 `define I2C
 `ifdef I2C
 `define FLASH
 `endif
-`define SIM
+`define SPI
 /* 
 `define SPI0_SLAVE_SELECTS
-`define SPI0
 `define RAM_WB
 `define INTGEN
 */

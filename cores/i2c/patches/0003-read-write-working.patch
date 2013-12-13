@@ -1,6 +1,6 @@
 diff -Naur a/i2c_master_bit_ctrl.v b/i2c_master_bit_ctrl.v
---- a/i2c_master_bit_ctrl.v	2013-12-12 19:38:46.080339330 +0000
-+++ b/i2c_master_bit_ctrl.v	2013-12-12 19:36:57.597703140 +0000
+--- a/i2c_master_bit_ctrl.v	2013-12-13 16:48:10.538220583 +0000
++++ b/i2c_master_bit_ctrl.v	2013-12-12 19:41:30.862267740 +0000
 @@ -141,35 +141,38 @@
  `include "i2c_master_defines.v"
  
@@ -562,8 +562,8 @@ diff -Naur a/i2c_master_bit_ctrl.v b/i2c_master_bit_ctrl.v
         end
  
 diff -Naur a/i2c_master_byte_ctrl.v b/i2c_master_byte_ctrl.v
---- a/i2c_master_byte_ctrl.v	2013-12-12 19:38:46.084339280 +0000
-+++ b/i2c_master_byte_ctrl.v	2013-12-12 18:50:32.996710317 +0000
+--- a/i2c_master_byte_ctrl.v	2013-12-13 16:48:10.538220583 +0000
++++ b/i2c_master_byte_ctrl.v	2013-12-12 19:41:30.866267690 +0000
 @@ -77,8 +77,7 @@
     clk, my_addr, rst, nReset, ena, clk_cnt, start, stop, read, write, ack_in,
     din, cmd_ack, ack_out, dout, i2c_busy, i2c_al, scl_i, sl_cont, scl_o,
@@ -761,8 +761,8 @@ diff -Naur a/i2c_master_byte_ctrl.v b/i2c_master_byte_ctrl.v
  	          if (core_ack)
  	            begin
 diff -Naur a/i2c_master_defines.v b/i2c_master_defines.v
---- a/i2c_master_defines.v	2013-12-12 19:38:46.084339280 +0000
-+++ b/i2c_master_defines.v	2013-12-12 16:22:11.444617982 +0000
+--- a/i2c_master_defines.v	2013-12-13 16:48:10.542220532 +0000
++++ b/i2c_master_defines.v	2013-12-12 19:41:30.866267690 +0000
 @@ -57,7 +57,9 @@
  `define I2C_CMD_STOP  4'b0010
  `define I2C_CMD_WRITE 4'b0100
@@ -774,8 +774,8 @@ diff -Naur a/i2c_master_defines.v b/i2c_master_defines.v
  `define I2C_SLAVE_CMD_NOP 2'b00
 +
 diff -Naur a/i2c_master_top.v b/i2c_master_top.v
---- a/i2c_master_top.v	2013-12-12 19:38:46.084339280 +0000
-+++ b/i2c_master_top.v	2013-12-12 16:22:11.448617931 +0000
+--- a/i2c_master_top.v	2013-12-13 16:48:10.542220532 +0000
++++ b/i2c_master_top.v	2013-12-13 16:38:44.001342917 +0000
 @@ -79,11 +79,11 @@
    (
  	wb_clk_i, wb_rst_i, arst_i, wb_adr_i, wb_dat_i, wb_dat_o,
@@ -937,7 +937,7 @@ diff -Naur a/i2c_master_top.v b/i2c_master_top.v
  	assign core_en = ctr[7];
  	assign ien = ctr[6];
 -	assign slave_en = ctr[5];
-+	assign slave_en = 1'b1;
++	assign slave_en = 1'b0;
  
  
  	// hookup byte controller block

@@ -13,6 +13,7 @@ depend =
  gpio
  i2c
  memory_i2c
+ spi
 
 simulators = verilator icarus modelsim
 

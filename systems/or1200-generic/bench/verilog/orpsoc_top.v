@@ -594,7 +594,97 @@ memory_i2c Flash(
 `endif
 
 
-`endif
+`endif //!FLASH
+
+`ifdef SPI
+////////////////////////////////////////////////////////////////////////
+//
+// SPI Master
+//
+////////////////////////////////////////////////////////////////////////
+//
+// Wires
+//
+wire            spi_irq;
+
+wire [31:0]	wb8_m2s_spi_adr;
+wire [1:0]	wb8_m2s_spi_bte;
+wire [2:0]	wb8_m2s_spi_cti;
+wire		wb8_m2s_spi_cyc;
+wire [7:0]	wb8_m2s_spi_dat;
+wire		wb8_m2s_spi_stb;
+wire		wb8_m2s_spi_we;
+wire [7:0] 	wb8_s2m_spi_dat;
+wire		wb8_s2m_spi_ack;
+wire		wb8_s2m_spi_err;
+wire		wb8_s2m_spi_rty;
+
+//
+// wires SPI
+//
+wire 		spi_sck_o;  //clock 
+wire 		spi_ss_o;   //select
+wire 		spi_mosi_o; //data master -> slave
+wire 		spi_miso_i; //data slave -> master
+
+//
+// Assigns
+//
+assign  wbs_d_spi_err_o = 0;
+assign  wbs_d_spi_rty_o = 0;
+assign  spi_hold_n_o = 1;
+assign  spi_w_n_o = 1;
+
+simple_spi spi(
+	// Wishbone slave interface
+	.clk_i	(wb_clk),
+	.rst_i	(wb_rst),
+	.adr_i	(wb8_m2s_spi_adr[2:0]),
+	.dat_i	(wb8_m2s_spi_dat),
+	.we_i	(wb8_m2s_spi_we),
+	.stb_i	(wb8_m2s_spi_stb),
+	.cyc_i	(wb8_m2s_spi_cyc),
+	.dat_o	(wb8_s2m_spi_dat),
+	.ack_o	(wb8_s2m_spi_ack),
+
+	// Outputs
+	.inta_o		(spi_irq),
+	.sck_o		(spi_sck_o),
+	.ss_o		(spi_ss_o),
+	.mosi_o		(spi_mosi_o),
+	// Inputs
+	.miso_i		(spi_miso_i));
+
+// 32-bit to 8-bit wishbone bus resize
+wb_data_resize wb_data_resize_spi (
+	// Wishbone Master interface
+	.wbm_adr_i	(wb_m2s_spi_adr),
+	.wbm_dat_i	(wb_m2s_spi_dat),
+	.wbm_sel_i	(wb_m2s_spi_sel),
+	.wbm_we_i	(wb_m2s_spi_we ),
+	.wbm_cyc_i	(wb_m2s_spi_cyc),
+	.wbm_stb_i	(wb_m2s_spi_stb),
+	.wbm_cti_i	(wb_m2s_spi_cti),
+	.wbm_bte_i	(wb_m2s_spi_bte),
+	.wbm_dat_o	(wb_s2m_spi_dat),
+	.wbm_ack_o	(wb_s2m_spi_ack),
+	.wbm_err_o	(wb_s2m_spi_err),
+	.wbm_rty_o	(wb_s2m_spi_rty),
+	// Wishbone Slave interface
+	.wbs_adr_o	(wb8_m2s_spi_adr),
+	.wbs_dat_o	(wb8_m2s_spi_dat),
+	.wbs_we_o 	(wb8_m2s_spi_we ),
+	.wbs_cyc_o	(wb8_m2s_spi_cyc),
+	.wbs_stb_o	(wb8_m2s_spi_stb),
+	.wbs_cti_o	(wb8_m2s_spi_cti),
+	.wbs_bte_o	(wb8_m2s_spi_bte),
+	.wbs_dat_i	(wb8_s2m_spi_dat),
+	.wbs_ack_i	(wb8_s2m_spi_ack),
+	.wbs_err_i	(wb8_s2m_spi_err),
+	.wbs_rty_i	(wb8_s2m_spi_rty)
+);
+`endif //!SPI
+
 
 
    ////////////////////////////////////////////////////////////////////////
