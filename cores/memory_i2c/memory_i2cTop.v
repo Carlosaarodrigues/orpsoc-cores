@@ -12,7 +12,7 @@ module memory_i2c (
     output 			sda_pad_o,
     output 			irq_o);
 
-    wire[7:0]	adr_m_i;
+    wire[9:0]	adr_m_i;
     wire[7:0]	dat_m_i;
     wire[3:0]	sel_m_i;
     wire	we_m_i ;
@@ -23,32 +23,21 @@ module memory_i2c (
     wire	ack_m_o;
     wire	err_m_o;
     wire	rty_m_o;
-    wire	data_avaiable;
-    wire	data_avaiable1;
 
-//
+
    wire[7:0]	dat_s_i;
    wire[7:0]	dat_s_o;
    wire		data_avail;
    wire		data_req;
    wire		start;
    wire		stop;
-//
-    reg[17:0]	state;
+
+    reg[6:0]	state;
     reg[7:0] 	adr;
-    reg		W_R;
 
 
    localparam wb_dw = 8;
    localparam MEM_SIZE_BITS = 8;
-
-
-   always @ (posedge clk_i or posedge rst_i)
-	begin
-	    data_avaiable = data_avaiable1;
-	    data_avaiable1 = data_avail;
-
-	end
 
 
    always @ (posedge clk_i or posedge rst_i)
@@ -66,35 +55,43 @@ module memory_i2c (
 		case (state)
                     idle://
                     begin
-		   	if(data_avaiable)
+			   we_m_i  <= 1'b0;
+			   stb_m_i <= 1'b0;
+			   cyc_m_i <= 1'b0;
+		   	if(data_avail)
 			begin
                             state <= adresse;
 			end
+
 		   	if(data_req)
+			begin
 			    state <= read;
+			    adr <= adr +1;
+			end
 		    end
 
 
-
+		    ////capture memory address  
 		    adresse:
 		    begin
-		   	if(data_avaiable)
+		   	if(data_avail)
 			begin
 			    state <= write;
 			    adr <= dat_s_o;
 			    sel_m_i <= 4'h1;
 			end
 			if(start)
-			    state <= idle;
+			    state <= read;
 
 		    end
 
+		    ////read memory 
 		    read:
 		    begin
-			    adr_m_i <= adr;
+			    adr_m_i <= {adr,2'b00};
 			    cyc_m_i <= 1'b1;
 			    stb_m_i <= 1'b1;
-			    sel_m_i <= 4'h0;
+			    sel_m_i <= 4'h1;
 			    state <= read_a;
 		    end
 
@@ -106,16 +103,16 @@ module memory_i2c (
 			    cyc_m_i <= 1'b0;
 			    stb_m_i <= 1'b0;
 			    sel_m_i <= 4'h0;
-			    adr <= adr +1;
 			    state <= idle;
 			end
 		    end
 		   
+		    ////write memory 
 		    write:
 		    begin
-		   	if(data_avaiable)
+		   	if(data_avail)
 			begin
-			    adr_m_i <= adr;
+			    adr_m_i <= {adr,2'b00};
 			    dat_m_i <= dat_s_o;
 			    we_m_i  <= 1'b1;
 			    stb_m_i <= 1'b1;
@@ -124,13 +121,13 @@ module memory_i2c (
 			end
 			if (stop)
 			begin
-			   state <= idle;
+			   state <= read;
 			   sel_m_i <= 4'h0;
 			end
 
 			if(start)
 			begin
-			    state <= idle;
+			    state <= read;
 			   sel_m_i <= 4'h0;
 			end
 		    end
@@ -146,16 +143,20 @@ module memory_i2c (
 			   state <= write;	
 			end
 		    end
-
-
 		endcase
 
-parameter [17:0] idle    = 6'b00_0000;
-parameter [17:0] adresse = 6'b00_0001;
-parameter [17:0] write 	 = 6'b00_0010;
-parameter [17:0] write_a = 6'b00_0100;
-parameter [17:0] read    = 6'b01_0000;
-parameter [17:0] read_a  = 6'b10_0000;
+
+
+
+
+
+
+parameter [4:0] idle    = 5'b0_0000;
+parameter [4:0] adresse = 5'b0_0001;
+parameter [4:0] write 	= 5'b0_0010;
+parameter [4:0] write_a = 5'b0_0100;
+parameter [4:0] read    = 5'b0_1000;
+parameter [4:0] read_a  = 5'b1_0000;
 
 
 
@@ -164,6 +165,7 @@ parameter [17:0] read_a  = 6'b10_0000;
 // FLASH
 //
 ////////////////////////////////////////////////////////////////////////
+
    ram_wb_b3 #(
    //wb_bfm_memory #(.DEBUG (0),
 	       .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
@@ -193,37 +195,37 @@ parameter [17:0] read_a  = 6'b10_0000;
 ////////////////////////////////////////////////////////////////////////
 
 i2c_master_byte_ctrl i2c_slave (
-      .clk      	( clk_i       	 ),//
-      .my_addr  	( 7'h50          ),//
-      .rst      	( rst_i	         ),//
-      .nReset  	 	( 1'b1           ),//
-      .ena      	( 1'b0           ),//
-      .clk_cnt  	( 16'hffff       ),//
-      .start    	( 1'b0           ),//
-      .stop     	( 1'b0           ),//
-      .read     	( 1'b0           ),//
-      .write    	( 1'b0           ),//
-      .ack_in   	( 1'b0           ),//
-      .din      	( dat_s_i        ),//
+      .clk      	( clk_i       	 ),
+      .my_addr  	( 7'h50          ),
+      .rst      	( rst_i	         ),
+      .nReset  	 	( 1'b1           ),
+      .ena      	( 1'b0           ),
+      .clk_cnt  	( 16'hffff       ),
+      .start    	( 1'b0           ),
+      .stop     	( 1'b0           ),
+      .read     	( 1'b0           ),
+      .write    	( 1'b0           ),
+      .ack_in   	( 1'b0           ),
+      .din      	( dat_s_i        ),
       .cmd_ack  	(     ),
       .ack_out  	(     ),
       .dout     	( dat_s_o        ),
       .i2c_busy 	(     ),
       .i2c_al   	(     ),
-      .scl_i    	( scl_i 	 ),//
+      .scl_i    	( scl_i 	 ),
       .scl_o    	( scl_pad_o      ),
       .scl_oen  	( scl_padoen_o   ),
-      .sda_i    	( sda_i      	 ),//
+      .sda_i    	( sda_i      	 ),
       .sda_o    	( sda_pad_o      ),
       .sda_oen  	( sda_padoen_o   ),
-      .sl_cont  	( 1'b0           ),//
-      .slave_en 	( 1'b1           ),//
-      .slave_dat_req 	( data_req       ),//
-      .slave_dat_avail 	( data_avail  ),//
+      .sl_cont  	( 1'b0           ),
+      .slave_en 	( 1'b1           ),
+      .slave_dat_req 	( data_req       ),
+      .slave_dat_avail 	( data_avail   	 ),
       .slave_act 	(     ),
       .slave_cmd_ack 	(     ),
-      .stop_signal	( stop           ),//
-      .start_signal	( start          ));//
+      .stop_signal	( stop           ),
+      .start_signal	( start          ));
 
 
 endmodule
