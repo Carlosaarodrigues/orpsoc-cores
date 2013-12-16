@@ -602,9 +602,7 @@ memory_i2c Flash(
 // SPI Master
 //
 ////////////////////////////////////////////////////////////////////////
-//
-// Wires
-//
+
 wire            spi_irq;
 
 wire [31:0]	wb8_m2s_spi_adr;
@@ -619,6 +617,7 @@ wire		wb8_s2m_spi_ack;
 wire		wb8_s2m_spi_err;
 wire		wb8_s2m_spi_rty;
 
+
 //
 // wires SPI
 //
@@ -626,7 +625,6 @@ wire 		spi_sck_o;  //clock
 wire 		spi_ss_o;   //select
 wire 		spi_mosi_o; //data master -> slave
 wire 		spi_miso_i; //data slave -> master
-
 //
 // Assigns
 //
@@ -683,6 +681,8 @@ wb_data_resize wb_data_resize_spi (
 	.wbs_err_i	(wb8_s2m_spi_err),
 	.wbs_rty_i	(wb8_s2m_spi_rty)
 );
+
+
 `endif //!SPI
 
 
