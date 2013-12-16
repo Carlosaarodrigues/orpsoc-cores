@@ -50,8 +50,11 @@
 
 
 #include "ResetSC.h" 
-#include "Or1200MonitorSC.h"
 
+//#define MONITOR
+#ifdef MONITOR
+#include "Or1200MonitorSC.h"
+#endif
 
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
@@ -70,9 +73,18 @@
 bool gQuiet;
 
 int gSimRunning;
+#ifndef MONITOR
+uint32_t instruction;
+uint32_t character;
+static const uint32_t NOP_EXIT = 0x1500000C;	//!< End of simulation
+static const uint32_t NOP_PUTC = 0x15000004;	//printf
+#endif
 
 int sc_main(int argc, char *argv[])
 {
+
+	cout << "Starting ORPSoc Verilator cycle accurate simulation...\n";
+
 	sc_set_time_resolution(1, TIMESCALE_UNIT);
 	// CPU clock (also used as JTAG TCK) and reset (both active high and low)
 	sc_time clkPeriod(BENCH_CLK_HALFPERIOD * 2.0, TIMESCALE_UNIT);
@@ -95,6 +107,10 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > uart_rx;	// External UART
 	sc_signal < bool > uart_tx;
 #endif
+
+#ifdef GPIO
+	sc_signal < unsigned int > gpio;	// GPIO interface
+#endif 
 
 	gSimRunning = 0;
 
@@ -137,7 +153,9 @@ int sc_main(int argc, char *argv[])
 
 	ResetSC *reset;		// Generate a RESET signal
 
+#ifdef MONITOR
 	Or1200MonitorSC *monitor;	// Handle l.nop x instructions
+#endif
 
 #ifdef SIM
 	JtagSC *jtag;		// Generate JTAG signals
@@ -155,8 +173,10 @@ int sc_main(int argc, char *argv[])
 
 	memoryload = new MemoryLoad(accessor);
 
+#ifdef MONITOR
 	monitor = new Or1200MonitorSC("monitor", accessor, memoryload,
 				      argc, argv);
+#endif
 
 	// Instantiate the SystemC modules
 	reset = new ResetSC("reset", BENCH_RESET_TIME);
@@ -266,7 +286,10 @@ int sc_main(int argc, char *argv[])
 				printf
 				    ("  -r, --rsp [<port>]\tEnable RSP debugging server, opt. specify <port>\n");
 #endif
+
+#ifdef MONITOR
 				monitor->printUsage();
+#endif
 				printf("\n");
 				return 0;
 			}
@@ -310,12 +333,18 @@ int sc_main(int argc, char *argv[])
 	orpsoc->uart0_stx_pad_o(uart_tx);
 #endif
 
+#ifdef GPIO
+	orpsoc->gpio0_io(gpio);	// GPIO interface
+#endif 
+
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
 	reset->rst(rst);
 	reset->rstn(rstn);
 
+#ifdef MONITOR
 	monitor->clk(clk);	// Monitor
+#endif
 
 #ifdef SIM
 	jtag->sysReset(rst);	// JTAG
@@ -392,10 +421,12 @@ int sc_main(int argc, char *argv[])
 				 TIMESCALE_UNIT);
 			gSimRunning = 0;
 			sc_stop();
+#ifdef MONITOR
 			// Print performance summary
 			monitor->perfSummary();
 			// Do memdump if enabled
 			monitor->memdump();
+#endif
 		} else {
 			if (dump_start_delay_set) {
 				// Run the sim until we want to dump
@@ -412,10 +443,15 @@ int sc_main(int argc, char *argv[])
 				while (!Verilated::gotFinish()) {
 					// gSimRunning value changed by the
 					// monitor when sim should finish.
-					if (gSimRunning)
+#ifndef MONITOR
+					instruction = accessor->getWbInsn();
+					if (instruction == NOP_EXIT) {gSimRunning = 0;} 
+#endif
+
+					if (gSimRunning){
 						// Step the sim
 						sc_start(1, TIMESCALE_UNIT);
-					else {
+					}else {
 						verilatorVCDFile->close();
 						break;
 					}
@@ -445,12 +481,14 @@ int sc_main(int argc, char *argv[])
 								// Officially stop the sim
 								sc_stop();
 								// Print performance summary
+#ifdef MONITOR
 								monitor->
 								    perfSummary
 								    ();
 								// Do memdump if enabled
 								monitor->memdump
 								    ();
+#endif
 							}
 							break;
 						}
@@ -463,14 +501,16 @@ int sc_main(int argc, char *argv[])
 							// Close dump file
 							verilatorVCDFile->close
 							    ();
+#ifdef MONITOR
 							// Do memdump if enabled
 							monitor->memdump();
 							// Print performance summary
 							monitor->perfSummary();
+#endif
 							break;
 						}
 					}
-				}
+				}//while
 			}
 		}
 	} else {
@@ -493,7 +533,9 @@ finish_up:
 	delete jtag;
 #endif
 
+#ifdef MONITOR
 	delete monitor;
+#endif
 
 	delete reset;
 

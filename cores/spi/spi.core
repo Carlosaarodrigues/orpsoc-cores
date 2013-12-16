@@ -1,0 +1,19 @@
+CAPI=1
+[main]
+description = "OpenCores SPI Core"
+
+[verilog]
+src_files =
+ spi_clgen.v
+ spi_shift.v
+ spi_top.v
+
+include_files =
+ spi_defines.v
+
+
+[provider]
+name = opencores
+repo_name = spi
+repo_root = trunk/rtl/verilog
+revision = 29

@@ -1,8 +1,22 @@
-//`define JTAG_DEBUG
+`include "orpsoc-defines.v"
 
-module orpsoc_top
-  (input wb_clk_i,
+module orpsoc_top#(
+	parameter	uart0_aw = 3,
+	parameter	rom0_aw = 6,
+        parameter       i2c_wb_adr_width = 3,
+	parameter       HV1_SADR = 8'h45
+
+  )(input wb_clk_i,
    input wb_rst_i
+
+`ifdef UART0
+,    output uart0_stx_pad_o,
+    input uart0_srx_pad_i
+`endif
+
+`ifdef GPIO
+,	inout	[7:0]	gpio_io
+`endif
 
 `ifdef JTAG_DEBUG
 ,   output          tdo_pad_o,
@@ -12,7 +26,6 @@ module orpsoc_top
 `endif
 );
 
-   localparam wb_aw = 32;
    localparam wb_dw = 32;
 
    localparam MEM_SIZE_BITS = 23;
@@ -31,20 +44,12 @@ module orpsoc_top
    ////////////////////////////////////////////////////////////////////////
    wire wb_clk = wb_clk_i;
    wire wb_rst = wb_rst_i;
+`ifdef I2C
+   wire		i2c_sda_io;
+   wire		i2c_scl_io;
+`endif
 
    `include "wb_intercon.vh"
-
-   wire [31:0]                wb_m2s_uart8_adr;
-   wire [7:0] 		      wb_m2s_uart8_dat;
-   wire 		      wb_m2s_uart8_we;
-   wire 		      wb_m2s_uart8_cyc;
-   wire 		      wb_m2s_uart8_stb;
-   wire [2:0] 		      wb_m2s_uart8_cti;
-   wire [1:0] 		      wb_m2s_uart8_bte;
-   wire [7:0] 		      wb_s2m_uart8_dat;
-   wire 		      wb_s2m_uart8_ack;
-   wire 		      wb_s2m_uart8_err;
-   wire 		      wb_s2m_uart8_rty;
 
 `ifdef JTAG_DEBUG
 ////////////////////////////////////////////////////////////////////////
@@ -117,7 +122,7 @@ tap_top jtag_tap0 (
    assign	or1k_rst= wb_rst | or1k_dbg_rst;
 
 
-   or1200_top #(.boot_adr(32'h00000100)) or1200_top0
+   or1200_top #(.boot_adr(32'hf0000100)) or1200_top0
        (
 	// Instruction bus, clocks, reset
 	.iwb_clk_i			(wb_clk_i),
@@ -188,6 +193,32 @@ tap_top jtag_tap0 (
 
    ////////////////////////////////////////////////////////////////////////
    //
+   // BOOTROM
+   // 
+   ////////////////////////////////////////////////////////////////////////
+assign	wb_s2m_rom_err = 1'b0;
+assign	wb_s2m_rom_rty = 1'b0;
+
+`ifdef BOOTROM
+rom #(.addr_width(rom0_aw))
+    rom (
+	.wb_clk		(wb_clk),
+	.wb_rst		(wb_rst),
+	.wb_adr_i	(wb_m2s_rom_adr[(rom0_aw + 2) - 1 : 2]),
+	.wb_cyc_i	(wb_m2s_rom_cyc),
+	.wb_stb_i	(wb_m2s_rom_stb),
+	.wb_cti_i	(wb_m2s_rom_cti),
+	.wb_bte_i	(wb_m2s_rom_bte),
+	.wb_dat_o	(wb_s2m_rom_dat),
+	.wb_ack_o	(wb_s2m_rom_ack)
+);
+`else
+assign	wb_s2m_rom_dat_o = 0;
+assign	wb_s2m_rom_ack_o = 0;
+`endif
+
+   ////////////////////////////////////////////////////////////////////////
+   //
    // Generic main RAM
    // 
    ////////////////////////////////////////////////////////////////////////
@@ -212,13 +243,28 @@ tap_top jtag_tap0 (
       .wb_ack_o	(wb_s2m_mem_ack),
       .wb_err_o (wb_s2m_mem_err),
       .wb_rty_o (wb_s2m_mem_rty));
-   
+
+`ifdef UART0   
    ////////////////////////////////////////////////////////////////////////
    //
    // UART
    // 
    ////////////////////////////////////////////////////////////////////////
-/*
+
+    wire	uart0_irq;
+
+    wire [31:0]	wb_m2s_uart8_adr;
+    wire [1:0]	wb_m2s_uart8_bte;
+    wire [2:0]	wb_m2s_uart8_cti;
+    wire	wb_m2s_uart8_cyc;
+    wire [7:0]	wb_m2s_uart8_dat;
+    wire	wb_m2s_uart8_stb;
+    wire	wb_m2s_uart8_we;
+    wire [7:0] 	wb_s2m_uart8_dat;
+    wire	wb_s2m_uart8_ack;
+    wire	wb_s2m_uart8_err;
+    wire	wb_s2m_uart8_rty;
+
    wb_data_resize wb_data_resize_uart0
    (//Wishbone Master interface
     .wbm_adr_i (wb_m2s_uart_adr),
@@ -245,25 +291,39 @@ tap_top jtag_tap0 (
     .wbs_ack_i (wb_s2m_uart8_ack),
     .wbs_err_i (wb_s2m_uart8_err),
     .wbs_rty_i (wb_s2m_uart8_rty));
-*/ 
-   wb_uart_wrapper #(.DEBUG (0))
-   wb_uart_wrapper0
-     (
-      //Wishbone Master interface
-      .wb_clk_i (wb_clk_i),
-      .wb_rst_i (wb_rst_i),
-      .wb_adr_i	(wb_m2s_uart8_adr),
-      .wb_dat_i	(wb_m2s_uart8_dat),
-      .wb_we_i	(wb_m2s_uart8_we),
-      .wb_cyc_i	(wb_m2s_uart8_cyc),
-      .wb_stb_i	(wb_m2s_uart8_stb),
-      .wb_cti_i	(wb_m2s_uart8_cti),
-      .wb_bte_i	(wb_m2s_uart8_bte),
-      .wb_dat_o	(wb_s2m_uart8_dat),
-      .wb_ack_o	(wb_s2m_uart8_ack),
-      .wb_err_o (wb_s2m_uart8_err),
-      .wb_rty_o (wb_s2m_uart8_rty));
 
+
+    assign	wb8_s2m_uart0_err = 0;
+    assign	wb8_s2m_uart0_rty = 0;
+
+    uart_top uart16550_0 (
+	// Wishbone slave interface
+	.wb_clk_i	(wb_clk),
+	.wb_rst_i	(wb_rst),
+	.wb_adr_i	(wb_m2s_uart8_adr),
+	.wb_dat_i	(wb_m2s_uart8_dat),
+	.wb_we_i	(wb_m2s_uart8_we ),
+	.wb_stb_i	(wb_m2s_uart8_stb),
+	.wb_cyc_i	(wb_m2s_uart8_cyc),
+	.wb_sel_i	(4'b0), // Not used in 8-bit mode
+	.wb_dat_o	(wb_s2m_uart8_dat),
+	.wb_ack_o	(wb_s2m_uart8_ack),
+
+	// Outputs
+	.int_o		(uart0_irq),
+	.stx_pad_o	(uart0_stx_pad_o),
+	.rts_pad_o	(),
+	.dtr_pad_o	(),
+
+	// Inputs
+	.srx_pad_i	(uart0_srx_pad_i),
+	.cts_pad_i	(1'b0),
+	.dsr_pad_i	(1'b0),
+	.ri_pad_i	(1'b0),
+	.dcd_pad_i	(1'b0)
+);
+
+`endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -313,6 +373,320 @@ adbg_top dbg_if0 (
 );
 `endif
 
+`ifdef GPIO
+////////////////////////////////////////////////////////////////////////
+//
+// GPIO 0
+//
+////////////////////////////////////////////////////////////////////////
+
+wire [7:0]	gpio_in;
+wire [7:0]	gpio_out;
+wire [7:0]	gpio_dir;
+
+wire [31:0]	wb8_m2s_gpio_adr;
+wire [1:0]	wb8_m2s_gpio_bte;
+wire [2:0]	wb8_m2s_gpio_cti;
+wire		wb8_m2s_gpio_cyc;
+wire [7:0]	wb8_m2s_gpio_dat;
+wire		wb8_m2s_gpio_stb;
+wire		wb8_m2s_gpio_we;
+wire [7:0] 	wb8_s2m_gpio_dat;
+wire		wb8_s2m_gpio_ack;
+wire		wb8_s2m_gpio_err;
+wire		wb8_s2m_gpio_rty;
+
+// Tristate logic for IO
+// 0 = input, 1 = output
+genvar                    i;
+generate
+	for (i = 0; i < 8; i = i+1) begin: gpio0_tris
+		assign gpio_io[i] = gpio_dir[i] ? gpio_out[i] : 1'bz;
+		assign gpio_in[i] = gpio_dir[i] ? gpio_out[i] : gpio_io[i];
+	end
+endgenerate
+
+gpio gpio0 (
+	// GPIO bus
+	.gpio_i		(gpio_in),
+	.gpio_o		(gpio_out),
+	.gpio_dir_o	(gpio_dir),
+	// Wishbone slave interface
+	.wb_adr_i	(wb8_m2s_gpio_adr[0]),
+	.wb_dat_i	(wb8_m2s_gpio_dat),
+	.wb_we_i	(wb8_m2s_gpio_we),
+	.wb_cyc_i	(wb8_m2s_gpio_cyc),
+	.wb_stb_i	(wb8_m2s_gpio_stb),
+	.wb_cti_i	(wb8_m2s_gpio_cti),
+	.wb_bte_i	(wb8_m2s_gpio_bte),
+	.wb_dat_o	(wb8_s2m_gpio_dat),
+	.wb_ack_o	(wb8_s2m_gpio_ack),
+	.wb_err_o	(wb8_s2m_gpio_err),
+	.wb_rty_o	(wb8_s2m_gpio_rty),
+
+	.wb_clk		(wb_clk),
+	.wb_rst		(wb_rst)
+);
+
+// 32-bit to 8-bit wishbone bus resize
+wb_data_resize wb_data_resize_gpio0 (
+	// Wishbone Master interface
+	.wbm_adr_i	(wb_m2s_gpio_adr),
+	.wbm_dat_i	(wb_m2s_gpio_dat),
+	.wbm_sel_i	(wb_m2s_gpio_sel),
+	.wbm_we_i	(wb_m2s_gpio_we ),
+	.wbm_cyc_i	(wb_m2s_gpio_cyc),
+	.wbm_stb_i	(wb_m2s_gpio_stb),
+	.wbm_cti_i	(wb_m2s_gpio_cti),
+	.wbm_bte_i	(wb_m2s_gpio_bte),
+	.wbm_dat_o	(wb_s2m_gpio_dat),
+	.wbm_ack_o	(wb_s2m_gpio_ack),
+	.wbm_err_o	(wb_s2m_gpio_err),
+	.wbm_rty_o	(wb_s2m_gpio_rty),
+	// Wishbone Slave interface
+	.wbs_adr_o	(wb8_m2s_gpio_adr),
+	.wbs_dat_o	(wb8_m2s_gpio_dat),
+	.wbs_we_o	(wb8_m2s_gpio_we ),
+	.wbs_cyc_o	(wb8_m2s_gpio_cyc),
+	.wbs_stb_o	(wb8_m2s_gpio_stb),
+	.wbs_cti_o	(wb8_m2s_gpio_cti),
+	.wbs_bte_o	(wb8_m2s_gpio_bte),
+	.wbs_dat_i	(wb8_s2m_gpio_dat),
+	.wbs_ack_i	(wb8_s2m_gpio_ack),
+	.wbs_err_i	(wb8_s2m_gpio_err),
+	.wbs_rty_i	(wb8_s2m_gpio_rty)
+);
+`endif //!`ifdef GPIO
+
+`ifdef I2C
+////////////////////////////////////////////////////////////////////////
+//
+// I2C controller MASTER
+//
+////////////////////////////////////////////////////////////////////////
+
+//
+// Wires
+//
+wire 		i2c_irq;
+wire 		i2c_scl_pad_o;
+wire 		i2c_scl_padoen_o;
+wire 		i2c_sda_pad_o;
+wire 		i2c_sda_padoen_o;
+
+wire [31:0]	wb8_m2s_i2c_adr;
+wire [1:0]	wb8_m2s_i2c_bte;
+wire [2:0]	wb8_m2s_i2c_cti;
+wire		wb8_m2s_i2c_cyc;
+wire [7:0]	wb8_m2s_i2c_dat;
+wire		wb8_m2s_i2c_stb;
+wire		wb8_m2s_i2c_we;
+wire [7:0] 	wb8_s2m_i2c_dat;
+wire		wb8_s2m_i2c_ack;
+wire		wb8_s2m_i2c_err;
+wire		wb8_s2m_i2c_rty;
+
+i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
+   .wb_clk_i			     (wb_clk),
+   .wb_rst_i			     (wb_rst),
+   .arst_i			     (wb_rst),
+   .wb_adr_i			     (wb8_m2s_i2c_adr[i2c_wb_adr_width-1:0]),
+   .wb_dat_i			     (wb8_m2s_i2c_dat	),
+   .wb_we_i			     (wb8_m2s_i2c_we	),
+   .wb_cyc_i			     (wb8_m2s_i2c_cyc	),
+   .wb_stb_i			     (wb8_m2s_i2c_stb	),
+   .wb_dat_o			     (wb8_s2m_i2c_dat	),
+   .wb_ack_o			     (wb8_s2m_i2c_ack	),
+   .scl_pad_i		     	     (i2c_scl_io  	),
+   .scl_pad_o			     (i2c_scl_pad_o	),
+   .scl_padoen_o		     (i2c_scl_padoen_o	),
+   .sda_pad_i			     (i2c_sda_io	),
+   .sda_pad_o			     (i2c_sda_pad_o	),
+   .sda_padoen_o		     (i2c_sda_padoen_o	),
+   // Interrupt
+   .wb_inta_o			     (i2c_irq));
+
+   assign wb8_s2m_i2c_err = 0;
+   assign wb8_s2m_i2c_rty = 0;
+
+   // i2c phy lines
+`ifdef SIM
+   assign i2c_scl_io = i2c_scl_padoen_o & i2c_s_scl_padoen_o;
+   assign i2c_sda_io = i2c_sda_padoen_o & i2c_s_sda_padoen_o;
+`else 
+   assign i2c_scl_io = i2c_scl_padoen_o ? 1'bz : i2c_scl_pad_o;
+   assign i2c_sda_io = i2c_sda_padoen_o ? 1'bz : i2c_sda_pad_o;
+`endif
+
+
+   // 32-bit to 8-bit wishbone bus resize
+   wb_data_resize wb_data_resize_i2c (
+	// Wishbone Master interface
+	.wbm_adr_i	(wb_m2s_i2c_adr),
+	.wbm_dat_i	(wb_m2s_i2c_dat),
+	.wbm_sel_i	(wb_m2s_i2c_sel),
+	.wbm_we_i	(wb_m2s_i2c_we ),
+	.wbm_cyc_i	(wb_m2s_i2c_cyc),
+	.wbm_stb_i	(wb_m2s_i2c_stb),
+	.wbm_cti_i	(wb_m2s_i2c_cti),
+	.wbm_bte_i	(wb_m2s_i2c_bte),
+	.wbm_dat_o	(wb_s2m_i2c_dat),
+	.wbm_ack_o	(wb_s2m_i2c_ack),
+	.wbm_err_o	(wb_s2m_i2c_err),
+	.wbm_rty_o	(wb_s2m_i2c_rty),
+	// Wishbone Slave interface
+	.wbs_adr_o	(wb8_m2s_i2c_adr),
+	.wbs_dat_o	(wb8_m2s_i2c_dat),
+	.wbs_we_o 	(wb8_m2s_i2c_we ),
+	.wbs_cyc_o	(wb8_m2s_i2c_cyc),
+	.wbs_stb_o	(wb8_m2s_i2c_stb),
+	.wbs_cti_o	(wb8_m2s_i2c_cti),
+	.wbs_bte_o	(wb8_m2s_i2c_bte),
+	.wbs_dat_i	(wb8_s2m_i2c_dat),
+	.wbs_ack_i	(wb8_s2m_i2c_ack),
+	.wbs_err_i	(wb8_s2m_i2c_err),
+	.wbs_rty_i	(wb8_s2m_i2c_rty)
+   );
+
+   ////////////////////////////////////////////////////////////////////////
+   `else // !`ifdef I2C
+
+   assign wb8_s2m_i2c_dat = 0;
+   assign wb8_s2m_i2c_ack = 0;
+   assign wb8_s2m_i2c_err = 0;
+   assign wb8_s2m_i2c_rty = 0;
+
+   ////////////////////////////////////////////////////////////////////////
+   `endif // !`ifdef I2C
+
+
+
+`ifdef FLASH
+////////////////////////////////////////////////////////////////////////
+//
+// I2C controller slave
+//
+////////////////////////////////////////////////////////////////////////
+//
+// Wires
+//
+wire 		i2c_s_irq;
+wire 		i2c_s_scl_pad_o;
+wire 		i2c_s_scl_padoen_o;
+wire 		i2c_s_sda_pad_o;
+wire 		i2c_s_sda_padoen_o;
+
+memory_i2c Flash(
+   .clk_i		(wb_clk),
+   .rst_i		(wb_rst),
+   .scl_i		(i2c_scl_io),
+   .scl_padoen_o	(i2c_s_scl_padoen_o),
+   .scl_pad_o		(i2c_s_scl_pad_o),
+   .sda_i		(i2c_sda_io),
+   .sda_padoen_o	(i2c_s_sda_padoen_o),
+   .sda_pad_o		(i2c_s_sda_pad_o),
+   .irq_o		(i2c_s_irq));
+
+   // i2c phy lines
+`ifndef SIM
+       assign i2c_scl_io = i2c_s_scl_padoen_o ? 1'bz : i2c_s_scl_pad_o;
+       assign i2c_sda_io = i2c_s_sda_padoen_o ? 1'bz : i2c_s_sda_pad_o;
+`endif
+
+
+`endif //!FLASH
+
+`ifdef SPI
+////////////////////////////////////////////////////////////////////////
+//
+// SPI Master
+//
+////////////////////////////////////////////////////////////////////////
+
+wire            spi_irq;
+
+wire [31:0]	wb8_m2s_spi_adr;
+wire [1:0]	wb8_m2s_spi_bte;
+wire [2:0]	wb8_m2s_spi_cti;
+wire		wb8_m2s_spi_cyc;
+wire [7:0]	wb8_m2s_spi_dat;
+wire		wb8_m2s_spi_stb;
+wire		wb8_m2s_spi_we;
+wire [7:0] 	wb8_s2m_spi_dat;
+wire		wb8_s2m_spi_ack;
+wire		wb8_s2m_spi_err;
+wire		wb8_s2m_spi_rty;
+
+
+//
+// wires SPI
+//
+wire 		spi_sck_o;  //clock 
+wire 		spi_ss_o;   //select
+wire 		spi_mosi_o; //data master -> slave
+wire 		spi_miso_i; //data slave -> master
+//
+// Assigns
+//
+assign  wbs_d_spi_err_o = 0;
+assign  wbs_d_spi_rty_o = 0;
+assign  spi_hold_n_o = 1;
+assign  spi_w_n_o = 1;
+
+simple_spi spi(
+	// Wishbone slave interface
+	.clk_i	(wb_clk),
+	.rst_i	(wb_rst),
+	.adr_i	(wb8_m2s_spi_adr[2:0]),
+	.dat_i	(wb8_m2s_spi_dat),
+	.we_i	(wb8_m2s_spi_we),
+	.stb_i	(wb8_m2s_spi_stb),
+	.cyc_i	(wb8_m2s_spi_cyc),
+	.dat_o	(wb8_s2m_spi_dat),
+	.ack_o	(wb8_s2m_spi_ack),
+
+	// Outputs
+	.inta_o		(spi_irq),
+	.sck_o		(spi_sck_o),
+	.ss_o		(spi_ss_o),
+	.mosi_o		(spi_mosi_o),
+	// Inputs
+	.miso_i		(spi_miso_i));
+
+// 32-bit to 8-bit wishbone bus resize
+wb_data_resize wb_data_resize_spi (
+	// Wishbone Master interface
+	.wbm_adr_i	(wb_m2s_spi_adr),
+	.wbm_dat_i	(wb_m2s_spi_dat),
+	.wbm_sel_i	(wb_m2s_spi_sel),
+	.wbm_we_i	(wb_m2s_spi_we ),
+	.wbm_cyc_i	(wb_m2s_spi_cyc),
+	.wbm_stb_i	(wb_m2s_spi_stb),
+	.wbm_cti_i	(wb_m2s_spi_cti),
+	.wbm_bte_i	(wb_m2s_spi_bte),
+	.wbm_dat_o	(wb_s2m_spi_dat),
+	.wbm_ack_o	(wb_s2m_spi_ack),
+	.wbm_err_o	(wb_s2m_spi_err),
+	.wbm_rty_o	(wb_s2m_spi_rty),
+	// Wishbone Slave interface
+	.wbs_adr_o	(wb8_m2s_spi_adr),
+	.wbs_dat_o	(wb8_m2s_spi_dat),
+	.wbs_we_o 	(wb8_m2s_spi_we ),
+	.wbs_cyc_o	(wb8_m2s_spi_cyc),
+	.wbs_stb_o	(wb8_m2s_spi_stb),
+	.wbs_cti_o	(wb8_m2s_spi_cti),
+	.wbs_bte_o	(wb8_m2s_spi_bte),
+	.wbs_dat_i	(wb8_s2m_spi_dat),
+	.wbs_ack_i	(wb8_s2m_spi_ack),
+	.wbs_err_i	(wb8_s2m_spi_err),
+	.wbs_rty_i	(wb8_s2m_spi_rty)
+);
+
+
+`endif //!SPI
+
+
+
    ////////////////////////////////////////////////////////////////////////
    //
    // OR1200 Interrupt assignment
@@ -328,8 +702,16 @@ adbg_top dbg_if0 (
    assign or1200_pic_ints[7] = 0;
    assign or1200_pic_ints[8] = 0;
    assign or1200_pic_ints[9] = 0;
+`ifdef I2C
+   assign or1200_pic_ints[10] = i2c_irq;
+`else
    assign or1200_pic_ints[10] = 0;
-   assign or1200_pic_ints[11] = 0;
+`endif
+`ifdef FLASH
+   assign or1200_pic_ints[10] = i2c_s_irq;
+`else
+   assign or1200_pic_ints[10] = 0;
+`endif
    assign or1200_pic_ints[12] = 0;
    assign or1200_pic_ints[13] = 0;
    assign or1200_pic_ints[14] = 0;

@@ -35,28 +35,19 @@
 
 // Included modules: define to include
 
-//`define MOR1KX
-`ifndef MOR1KX
-`define OR1200
-`endif
-`define SIM
+//`define JTAG_DEBUG
 `define UART0
 `define GPIO
-/* add slaver i2v verilog ou systemc
-`define I2C0
-`define I2C1
-
-*/
-/* add " simple_spi" in de0_nano.core
-`define SPI0_SLAVE_SELECTS
-`define SPI0
-`define SPI1_SLAVE_SELECTS
-`define SPI1
-`define SPI2_SLAVE_SELECTS
-`define SPI2
-`define ACEELEROMETER // systemC dont suport open inputs
-*/
 `define BOOTROM
+`define SIM
+`define I2C
+`ifdef I2C
+`define FLASH
+`endif
+`define SPI
+/* 
+`define SPI0_SLAVE_SELECTS
 `define RAM_WB
 `define INTGEN
+*/
 // end of included module defines - keep this comment line here

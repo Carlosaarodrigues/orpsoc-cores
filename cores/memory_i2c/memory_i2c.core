@@ -1,0 +1,13 @@
+CAPI=1
+[main]
+description = memory I2C
+depend =
+ i2c
+ ram_wb
+
+[verilog]
+src_files =
+ memory_i2cTop.v
+
+
+

@@ -3,28 +3,34 @@ CAPI=1
 description = "Minimal OR1200 simulation environment"
 depend = 
  or1200
- wb_bfm
- wb_intercon
+ or1k-elf-loader
+ ram_wb
+ vlog_tb_utils
  jtag_tap
+ wb_intercon
  adv_debug_sys
  uart16550
+ gpio
+ i2c
+ memory_i2c
+ simple_spi
+ memory_spi
 
 simulators = verilator icarus modelsim
 
 [verilog]
 src_files =
  bench/verilog/wb_intercon.v
+ bench/verilog/rom.v
  bench/verilog/orpsoc_top.v
- bench/verilog/wb_uart_wrapper.v
- bench/verilog/uart16550_model.v
 tb_private_src_files = 
  bench/verilog/orpsoc_tb.v
 include_files =
- bench/verilog/include/or1200_defines.v 
- bench/verilog/include/uart_defines.v
+ bench/verilog/include/orpsoc-defines.v
+ bench/verilog/include/or1200_defines.v
  bench/verilog/include/timescale.v
+ bench/verilog/include/uart_defines.v
  bench/verilog/wb_intercon.vh
- ../../cores/wb_bfm/wb_bfm_params.v
 
 
 [verilator]
@@ -33,17 +39,18 @@ verilator_options = -Wno-fatal --trace
 src_files = 
  bench/verilator/OrpsocAccess.cpp
  bench/verilator/MemoryLoad.cpp
- bench/verilator/Or1200MonitorSC.cpp
  bench/verilator/ResetSC.cpp
  bench/verilator/JtagServerSC.cpp
+ bench/verilator/UartSC.cpp
 include_files = 
  bench/verilator/OrpsocMain.h
  bench/verilator/OrpsocAccess.h
  bench/verilator/MemoryLoad.h
  bench/verilator/coff.h
  bench/verilator/ResetSC.h
- bench/verilator/Or1200MonitorSC.h
  bench/verilator/elf.h
  bench/verilator/UartSC.h
  bench/verilator/JtagServerSC.h
+ bench/verilator/UartSC.h
+define_file = or1200-generic/bench/verilog/include/orpsoc-defines.v
 tb_toplevel   = bench/verilator/OrpsocMain.cpp

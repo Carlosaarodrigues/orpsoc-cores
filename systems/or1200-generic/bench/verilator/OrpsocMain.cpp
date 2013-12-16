@@ -51,12 +51,14 @@
 
 #include "ResetSC.h" 
 
+//#define MONITOR
+#ifdef MONITOR
+#include "Or1200MonitorSC.h"
+#endif
 
 // Include Verilog ORPSoC defines file, converted to C include format to be
 // able to detect if the debug unit is to be built in or not.
-//#include "orpsoc-defines.h"
-#define JTAG_DEBUG
-#define UART0
+#include "orpsoc-defines.h"
 
 #ifdef JTAG_DEBUG
 # include "JtagServerSC.h"
@@ -70,6 +72,12 @@
 bool gQuiet;
 
 int gSimRunning;
+#ifndef MONITOR
+uint32_t instruction;
+uint32_t character;
+static const uint32_t NOP_EXIT = 0x1500000C;	//!< End of simulation
+static const uint32_t NOP_PUTC = 0x15000004;	//printf
+#endif
 
 int sc_main(int argc, char *argv[])
 {
@@ -98,6 +106,15 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > uart_rx;	// External UART
 	sc_signal < bool > uart_tx;
 #endif
+/*
+#ifdef I2C
+	sc_signal < bool > sda;	
+	sc_signal < bool > scl;
+#endif
+*/
+#ifdef GPIO
+	sc_signal < unsigned int > gpio;	// GPIO interface
+#endif 
 
 	gSimRunning = 0;
 
@@ -140,6 +157,9 @@ int sc_main(int argc, char *argv[])
 
 	ResetSC *reset;		// Generate a RESET signal
 
+#ifdef MONITOR
+	Or1200MonitorSC *monitor;	// Handle l.nop x instructions
+#endif
 
 #ifdef JTAG_DEBUG
 	JtagServerSC *jtagServer; // Generate JTAG signals
@@ -155,6 +175,11 @@ int sc_main(int argc, char *argv[])
 	accessor = new OrpsocAccess(orpsoc);
 
 	memoryload = new MemoryLoad(accessor);
+
+#ifdef MONITOR
+	monitor = new Or1200MonitorSC("monitor", accessor, memoryload,
+				      argc, argv);
+#endif
 
 	// Instantiate the SystemC modules
 	reset = new ResetSC("reset", BENCH_RESET_TIME);
@@ -262,6 +287,10 @@ int sc_main(int argc, char *argv[])
 				    ("  -j, --jtag [<port>]\tEnable JTAG debugging server, opt. specify <port>\n");
 #endif
 
+#ifdef MONITOR
+				monitor->printUsage();
+#endif
+				printf("\n");
 				return 0;
 			}
 
@@ -307,10 +336,23 @@ int sc_main(int argc, char *argv[])
 	orpsoc->uart0_stx_pad_o(uart_tx);
 #endif
 
+#ifdef GPIO
+	orpsoc->gpio_io(gpio);	// GPIO interface
+#endif 
+/*
+#ifdef I2C
+	orpsoc->i2c_sda_io(sda);
+	orpsoc->i2c_scl_io(scl);
+#endif
+*/
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
 	reset->rst(rst);
 	reset->rstn(rstn);
+
+#ifdef MONITOR
+	monitor->clk(clk);	// Monitor
+#endif
 
 	cout << "Connecting the JTAG server module...\n";
 
@@ -393,6 +435,12 @@ int sc_main(int argc, char *argv[])
 				 TIMESCALE_UNIT);
 			gSimRunning = 0;
 			sc_stop();
+#ifdef MONITOR
+			// Print performance summary
+			monitor->perfSummary();
+			// Do memdump if enabled
+			monitor->memdump();
+#endif
 		} else {
 			if (dump_start_delay_set) {
 				// Run the sim until we want to dump
@@ -409,10 +457,16 @@ int sc_main(int argc, char *argv[])
 				while (!Verilated::gotFinish()) {
 					// gSimRunning value changed by the
 					// monitor when sim should finish.
-					if (gSimRunning)
+#ifndef MONITOR
+					instruction = accessor->getWbInsn();
+					if (instruction == NOP_EXIT) {gSimRunning = 0;} 
+					//else if (instruction == 0x15000004) { character = accessor->getGpr(3); std::cout << (char)character << std::flush;}
+#endif
+
+					if (gSimRunning){
 						// Step the sim
 						sc_start(1, TIMESCALE_UNIT);
-					else {
+					}else {
 						verilatorVCDFile->close();
 						break;
 					}
@@ -441,7 +495,15 @@ int sc_main(int argc, char *argv[])
 								sc_start((double)(sim_time_remaining.to_double()), TIMESCALE_UNIT);
 								// Officially stop the sim
 								sc_stop();
-						
+								// Print performance summary
+#ifdef MONITOR
+								monitor->
+								    perfSummary
+								    ();
+								// Do memdump if enabled
+								monitor->memdump
+								    ();
+#endif
 							}
 							break;
 						}
@@ -452,12 +514,18 @@ int sc_main(int argc, char *argv[])
 							// Officially stop the sim
 							sc_stop();
 							// Close dump file
-							verilatorVCDFile->close();
-
+							verilatorVCDFile->close
+							    ();
+#ifdef MONITOR
+							// Do memdump if enabled
+							monitor->memdump();
+							// Print performance summary
+							monitor->perfSummary();
+#endif
 							break;
 						}
 					}
-				}
+				}//while
 			}
 		}
 	} else {
@@ -476,6 +544,11 @@ finish_up:
 #ifdef JTAG_DEBUG
 	if (jtag_server_enabled)
 		delete jtagServer;
+#endif
+
+
+#ifdef MONITOR
+	delete monitor;
 #endif
 
 	delete reset;
