@@ -22,7 +22,7 @@ module slave_spiTop #(
    localparam wb_dw = 8;
    localparam MEM_SIZE_BITS = 24;
 
- assign word_done <= ~|word_cnt
+ assign word_done = ~|word_cnt;
 
 
   always @(posedge clk_i)
@@ -41,7 +41,7 @@ module slave_spiTop #(
 	begin
 	   case (state)
 
-		3'b000:
+		3'b000: begin
 		    read <=1'b1;
 		    if (word_done)
 		    begin
@@ -49,8 +49,8 @@ module slave_spiTop #(
 			command <= word;
 	    		word_cnt <= 3'b111;
 		    end
-
-		3'b001:
+		end 
+		3'b001: begin 
 		    if(command == 8'h03)
 		    	if (word_done)
 		    	begin
@@ -60,7 +60,7 @@ module slave_spiTop #(
 		    	end
 		     else
 			state <=  3'b000;
-
+		end
 		3'b010:
 		    if (word_done)
 		    begin
@@ -105,10 +105,10 @@ module slave_spiTop #(
 	end
 
   always @(posedge sck_i)
-	if(rst_i || ss_i)
+	if(rst_i || ss_i) begin
 	    word  <= 8'h0;
 	    word_cnt <= 3'b111; 
-	else
+	end else
 	    if(read && ~word_done)
 	    begin
 	    	word  <= {word[6:0],mosi_i};
