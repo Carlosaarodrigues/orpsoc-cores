@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/ocsvn/openrisc/!svn/ver/809/openrisc/trunk/or1200/doc
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/Makefile
+END
+openrisc1200_spec.txt
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/809/openrisc/trunk/or1200/doc/openrisc1200_spec.txt
+END
+preprocess.pl
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/preprocess.pl
+END
+openrisc1200_spec_0.7_jp.doc
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/ocsvn/openrisc/!svn/ver/359/openrisc/trunk/or1200/doc/openrisc1200_spec_0.7_jp.doc
+END
+openrisc1200_supplementary_prm.odt
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/ocsvn/openrisc/!svn/ver/431/openrisc/trunk/or1200/doc/openrisc1200_supplementary_prm.odt
+END
+gen-docinfo.pl
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/gen-docinfo.pl
+END
+openrisc1200_spec.doc
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/openrisc1200_spec.doc
+END
+openrisc1200_supplementary_prm.pdf
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/ocsvn/openrisc/!svn/ver/431/openrisc/trunk/or1200/doc/openrisc1200_supplementary_prm.pdf
+END
+openrisc1200_spec.odt
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/openrisc1200_spec.odt
+END
+openrisc1200_spec_0.7_jp.pdf
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/ocsvn/openrisc/!svn/ver/359/openrisc/trunk/or1200/doc/openrisc1200_spec_0.7_jp.pdf
+END
+docbook.xsl
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/docbook.xsl
+END
+openrisc1200_spec.pdf
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/809/openrisc/trunk/or1200/doc/openrisc1200_spec.pdf
+END
+docbook-xsl.css
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/docbook-xsl.css
+END

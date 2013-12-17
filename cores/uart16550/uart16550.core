@@ -15,8 +15,3 @@ src_files =
  rtl/verilog/uart_transmitter.v
  rtl/verilog/uart_wb.v
 
-[provider]
-name = opencores
-repo_name = uart16550
-repo_root = trunk
-revision = 108

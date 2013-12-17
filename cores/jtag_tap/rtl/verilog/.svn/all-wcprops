@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/ocsvn/jtag/!svn/ver/22/jtag/trunk/tap/rtl/verilog
+END
+tap_defines.v
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/ocsvn/jtag/!svn/ver/22/jtag/trunk/tap/rtl/verilog/tap_defines.v
+END
+tap_top.v
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/ocsvn/jtag/!svn/ver/22/jtag/trunk/tap/rtl/verilog/tap_top.v
+END

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/sim/rtl_sim/log
+END
+.keepme
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/sim/rtl_sim/log/.keepme
+END
+uart_interrupts_report.log
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/sim/rtl_sim/log/uart_interrupts_report.log
+END
+uart_interrupts_verbose.log
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/sim/rtl_sim/log/uart_interrupts_verbose.log
+END

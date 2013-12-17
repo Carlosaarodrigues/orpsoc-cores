@@ -561,7 +561,7 @@ i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
 
 
 
-`ifdef FLASH
+`ifdef FLASH_I2c
 ////////////////////////////////////////////////////////////////////////
 //
 // I2C controller slave
@@ -576,7 +576,7 @@ wire 		i2c_s_scl_padoen_o;
 wire 		i2c_s_sda_pad_o;
 wire 		i2c_s_sda_padoen_o;
 
-memory_i2c Flash(
+memory_i2c Flash_i2c(
    .clk_i		(wb_clk),
    .rst_i		(wb_rst),
    .scl_i		(i2c_scl_io),
@@ -594,7 +594,7 @@ memory_i2c Flash(
 `endif
 
 
-`endif //!FLASH
+`endif //!FLASH_I2c
 
 `ifdef SPI
 ////////////////////////////////////////////////////////////////////////
@@ -633,7 +633,7 @@ assign  wbs_d_spi_rty_o = 0;
 assign  spi_hold_n_o = 1;
 assign  spi_w_n_o = 1;
 
-simple_spi spi(
+simple_spi spi_master(
 	// Wishbone slave interface
 	.clk_i	(wb_clk),
 	.rst_i	(wb_rst),
@@ -685,6 +685,21 @@ wb_data_resize wb_data_resize_spi (
 
 `endif //!SPI
 
+`ifdef FLASH_SPI
+
+  wire 		flash_miso;
+
+slave_spiTop flash_spi(
+	.clk_i		( wb_clk      ),
+	.rst_i		( wb_rst      ),
+	.sck_i		( spi_sck_o   ),      // serial clock output
+	.ss_i		( spi_ss_o ),    	// slave select (active low)
+	.mosi_i		( spi_mosi_o  ),     // MasterOut SlaveIN
+	.miso_o		( flash_miso  ));      // MasterIn SlaveOut
+
+       assign spi_miso_i = spi_ss_o ? 1'bz : flash_miso;
+`endif
+
 
 
    ////////////////////////////////////////////////////////////////////////
@@ -707,7 +722,7 @@ wb_data_resize wb_data_resize_spi (
 `else
    assign or1200_pic_ints[10] = 0;
 `endif
-`ifdef FLASH
+`ifdef FLASH_I2c
    assign or1200_pic_ints[10] = i2c_s_irq;
 `else
    assign or1200_pic_ints[10] = 0;

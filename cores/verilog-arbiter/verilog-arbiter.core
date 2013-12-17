@@ -5,8 +5,3 @@ description = "Verilog arbiter"
 [verilog]
 src_files = src/arbiter.v
 
-[provider]
-name = github
-user = bmartini
-repo = verilog-arbiter
-branch = master

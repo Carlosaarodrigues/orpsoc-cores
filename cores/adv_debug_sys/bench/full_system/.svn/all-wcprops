@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/ocsvn/adv_debug_sys/!svn/ver/56/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/full_system
+END
+onchip_ram_top.v
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/ocsvn/adv_debug_sys/!svn/ver/56/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/full_system/onchip_ram_top.v
+END
+xsv_fpga_defines.v
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/full_system/xsv_fpga_defines.v
+END
+adv_dbg_tb.v
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/ocsvn/adv_debug_sys/!svn/ver/56/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/full_system/adv_dbg_tb.v
+END
+wave.do
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/full_system/wave.do
+END
+xsv_fpga_top.v
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/ocsvn/adv_debug_sys/!svn/ver/56/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/full_system/xsv_fpga_top.v
+END
