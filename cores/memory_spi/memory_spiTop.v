@@ -4,6 +4,8 @@
 
 module slave_spiTop #(
 )(
+  input		    clk_i,
+  input  	    rst_i,
   // SPI port
   input  reg        sck_i,      // serial clock output
   input  wire 	    ss_i,      	// slave select (active low)
@@ -11,52 +13,72 @@ module slave_spiTop #(
   output wire       miso_o      // MasterIn SlaveOut
 );
 
-  reg [1:0]	state;
+  reg [2:0]	state;
   reg [7:0]	word;
-  reg [2:0]	word_cnt;
+  reg [3:0]	word_cnt;
   reg [7:0]	command;
   reg 		read;
   reg 		write;
+
   reg [23:0]	adr_m_i;
+  reg [7:0]	dat_m_i;
+  reg [7:0]	dat_m_o;
+
+  wire [3:0]	sel_m_i;
+  wire  	we_m_i; 
+  wire  	cyc_m_i;
+  wire  	stb_m_i;
+  wire  	cti_m_i;
+  wire  	ack_m_o;
+  wire 	 	err_m_o;
+  wire  	rty_m_o;
+
+
+
   
    localparam wb_dw = 8;
    localparam MEM_SIZE_BITS = 24;
 
- assign word_done <= ~|word_cnt
+ assign word_done = ~|word_cnt;
 
 
   always @(posedge clk_i)
 	if(rst_i || ss_i)
 	begin         
-	   cyc_o  <=  1'b0;      
-	   stb_o  <=  1'b0;       
-	   adr_m_i  <=  24'h0000;        
-	   we_o   <=  1'b0;          
-	   dat_o  <=  8'h0;
-	   state  <=  2'b00;
-	   read <=1'b0;
-	   write <=1'b0;
+	   sel_m_i   =  4'h0;
+	   we_m_i    =  1'b0; 
+	   cyc_m_i   =  1'b0;      
+	   stb_m_i   =  1'b0;
+	   cti_m_i   =  1'b0;    
+	   adr_m_i  <=  24'h0000;                 
+	   dat_m_o   =  8'h0;
+	   state    <=  3'b000;
+	   read     <=  1'b0;
+	   write    <=  1'b0;
+	   word_cnt <=  4'b1000;
 	end
 	else
 	begin
 	   case (state)
 
 		3'b000:
+		begin
 		    read <=1'b1;
 		    if (word_done)
 		    begin
 			state <=  3'b001;
 			command <= word;
-	    		word_cnt <= 3'b111;
+	    		word_cnt <= 4'b1000;
 		    end
+		end
 
 		3'b001:
-		    if(command == 8'h03)
-		    	if (word_done)
+		    if (word_done)
+		    	if(command == 8'h03)
 		    	begin
 			    state <=  3'b010;
 			    adr_m_i[23:16] <= word;
-	    		    word_cnt <= 3'b111;
+	    		    word_cnt <= 4'b1000;
 		    	end
 		     else
 			state <=  3'b000;
@@ -66,7 +88,7 @@ module slave_spiTop #(
 		    begin
 			state <=  3'b011;
 			adr_m_i[15:8] <= word;
-	    		word_cnt <= 3'b111;
+	    		word_cnt <= 4'b1000;
 		    end
 
 		3'b011:
@@ -74,40 +96,41 @@ module slave_spiTop #(
 		    begin
 			state <=  3'b100;
 			adr_m_i[7:0] <= word;
-	    		word_cnt <= 3'b111;
+	    		word_cnt <= 4'b1000;
 		    	read <=1'b0;
 		    end
 
 		3'b100:
 		begin
-		    cyc_m_i <= 1'b1;
-		    stb_m_i <= 1'b1;
-		    sel_m_i <= 4'h1;
-		    state <= 3'b100;
+		    cyc_m_i  = 1'b1;
+		    stb_m_i  = 1'b1;
+		    sel_m_i  = 4'h1;
+		    write   <= 1'b1;
+		    state   <= 3'b101;
 		end
 		
 		3'b101:
 		    if(ack_m_o && word_done)
 		    begin
-			word <= dat_m_o;
-		    	write <=1'b1;
-			cyc_m_i <= 1'b0;
-			stb_m_i <= 1'b0;
-			sel_m_i <= 4'h0;
-	    		word_cnt <= 3'b111;
-			state <= 3'b101;
-			adr_m_i <= adr_m_i + 1'b1;
+			word     <= dat_m_o;
+			cyc_m_i   = 1'b0;
+			stb_m_i   = 1'b0;
+			sel_m_i   = 4'h0;
+	    		word_cnt <= 4'b1000;
+			state    <= 3'b110;
+			adr_m_i  <= adr_m_i + 1'b1;
 		    end
 
-		3'b101:
+		3'b110:
 		    state <= 3'b100;
 	    endcase
 	end
 
   always @(posedge sck_i)
 	if(rst_i || ss_i)
+	begin
 	    word  <= 8'h0;
-	    word_cnt <= 3'b111; 
+	end
 	else
 	    if(read && ~word_done)
 	    begin
@@ -140,7 +163,7 @@ module slave_spiTop #(
       //Wishbone Master interface
       .wb_clk_i (clk_i),
       .wb_rst_i (rst_i),
-      .wb_adr_i	({adr_m_i & (2**MEM_SIZE_BITS-1),2'b00}),
+      .wb_adr_i	({adr_m_i,2'b00} & (2**MEM_SIZE_BITS-1)),
       .wb_dat_i	(dat_m_i),
       .wb_sel_i	(sel_m_i),
       .wb_we_i	(we_m_i ),

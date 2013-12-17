@@ -118,6 +118,7 @@ module simple_spi #(
   // Wishbone interface
   wire wb_acc = cyc_i & stb_i;       // WISHBONE access
   wire wb_wr  = wb_acc & we_i;       // WISHBONE write access
+  wire wb_re  = wb_acc & ~we_i;      // WISHBONE read access
 
   // dat_i
   always @(posedge clk_i)
@@ -127,7 +128,7 @@ module simple_spi #(
           sper <= 8'h00;
           ss_r <= 0;
       end
-    else if (wb_wr)
+    else if (wb_wr || wb_re)
       begin
         if (adr_i == 3'b000)
           spcr <= dat_i | 8'h10; // always set master bit
@@ -135,7 +136,7 @@ module simple_spi #(
         if (adr_i == 3'b011)
           sper <= dat_i;
 
-		if (adr_i == 3'b100)
+	if (adr_i == 3'b100)
           ss_r <= dat_i[SS_WIDTH-1:0];
       end
 
@@ -164,8 +165,10 @@ module simple_spi #(
   always @(posedge clk_i)
     if (rst_i)
       ack_o <= 1'b0;
-    else
+    else if (we_i)
       ack_o <= wb_acc & !ack_o;
+    else
+      ack_o <= wb_acc & !ack_o & rfempty;
 
   // decode Serial Peripheral Control Register
   wire       spie = spcr[7];   // Interrupt enable bit
@@ -225,7 +228,8 @@ module simple_spi #(
 	.re    ( rfre    ),
 	.full  ( rffull  ),
 	.empty ( rfempty )
-  ),
+  );
+  fifo4 #(8)
   wfifo(
 	.clk   ( clk_i   ),
 	.rst   ( ~rst_i  ),
