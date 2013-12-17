@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img
+END
+core_arch.gif
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/core_arch.gif
+END
+wb_compatible.png
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/wb_compatible.png
+END
+addr_translation.gif
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/addr_translation.gif
+END
+core_interfaces.gif
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/core_interfaces.gif
+END
+interrupt_controller.gif
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/interrupt_controller.gif
+END
+dev_interface_cycles.gif
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/dev_interface_cycles.gif
+END
+watchpoint_trigger.gif
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/watchpoint_trigger.gif
+END
+wb_read.gif
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/wb_read.gif
+END
+tlb_diag.gif
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/tlb_diag.gif
+END
+powerup_seq_gatedclk.gif
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/powerup_seq_gatedclk.gif
+END
+cpu_fpu_dsp.gif
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/cpu_fpu_dsp.gif
+END
+powerup_seq.gif
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/powerup_seq.gif
+END
+debug_unit_diag.gif
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/debug_unit_diag.gif
+END
+wb_block_read.gif
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/wb_block_read.gif
+END
+inst_mmu_diag.gif
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/inst_mmu_diag.gif
+END
+data_cache_diag.gif
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/data_cache_diag.gif
+END
+wb_rw.gif
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/wb_rw.gif
+END
+or_family.gif
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/or_family.gif
+END
+wb_write.gif
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/wb_write.gif
+END
+inst_cache_diag.gif
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/ocsvn/openrisc/!svn/ver/645/openrisc/trunk/or1200/doc/img/inst_cache_diag.gif
+END

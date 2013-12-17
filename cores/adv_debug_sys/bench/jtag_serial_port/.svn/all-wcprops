@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/ocsvn/adv_debug_sys/!svn/ver/42/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/jtag_serial_port
+END
+adv_dbg_jsp_tb.v
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/ocsvn/adv_debug_sys/!svn/ver/42/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/jtag_serial_port/adv_dbg_jsp_tb.v
+END
+wave.do
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/ocsvn/adv_debug_sys/!svn/ver/42/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/jtag_serial_port/wave.do
+END

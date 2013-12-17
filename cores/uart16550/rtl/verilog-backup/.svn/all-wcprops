@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup
+END
+uart_wb.v
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_wb.v
+END
+timescale.v
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/timescale.v
+END
+uart_transmitter.v
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_transmitter.v
+END
+uart_defines.v
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_defines.v
+END
+uart_regs.v
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_regs.v
+END
+uart_top.v
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_top.v
+END
+uart_fifo.v
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_fifo.v
+END
+uart_receiver.v
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/ocsvn/uart16550/!svn/ver/106/uart16550/trunk/rtl/verilog-backup/uart_receiver.v
+END

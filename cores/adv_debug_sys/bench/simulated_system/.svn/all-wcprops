@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system
+END
+wb_slave_behavioral.v
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system/wb_slave_behavioral.v
+END
+wave.do
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system/wave.do
+END
+cpu_behavioral.v
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system/cpu_behavioral.v
+END
+wb_model_defines.v
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system/wb_model_defines.v
+END
+timescale.v
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system/timescale.v
+END
+adv_dbg_tb.v
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/ocsvn/adv_debug_sys/!svn/ver/32/adv_debug_sys/trunk/Hardware/adv_dbg_if/bench/simulated_system/adv_dbg_tb.v
+END

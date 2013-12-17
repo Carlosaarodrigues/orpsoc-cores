@@ -11,8 +11,3 @@ src_files =
 include_files =
  i2c_master_defines.v
 
-[provider]
-name = opencores
-repo_name = i2c
-repo_root = trunk/rtl/verilog
-revision = 76
