@@ -32,6 +32,8 @@ include_files =
  bench/verilog/include/uart_defines.v
  bench/verilog/wb_intercon.vh
 
+[icarus]
+iverilog_options = -g2005
 
 [verilator]
 source_type = systemC
