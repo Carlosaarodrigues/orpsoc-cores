@@ -83,7 +83,7 @@ module i2c_master_top
 
 	// parameters
     parameter ARST_LVL = 1'b1; // asynchronous reset level
-    parameter [6:0] DEFAULT_SLAVE_ADDR  = 7'hA0;
+    parameter [6:0] DEFAULT_SLAVE_ADDR  = 7'b0100000;
 	//
 	// inputs & outputs
 	//

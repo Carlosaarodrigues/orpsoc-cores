@@ -2,15 +2,14 @@
 `include "timescale.v"
 
 
-module slave_spiTop #(
-)(
+module slave_spiTop (
   input		    clk_i,
   input  	    rst_i,
   // SPI port
-  input  reg        sck_i,      // serial clock output
+  input             sck_i,      // serial clock output
   input  wire 	    ss_i,      	// slave select (active low)
   input  wire       mosi_i,     // MasterOut SlaveIN
-  output wire       miso_o      // MasterIn SlaveOut
+  output reg       miso_o      // MasterIn SlaveOut
 );
 
   reg [3:0]	state;
@@ -25,10 +24,10 @@ module slave_spiTop #(
   reg [7:0]	dat_m_o;
   reg [7:0]	size_write;
 
-  wire [3:0]	sel_m_i;
+  reg [3:0]	sel_m_i;
   wire  	we_m_i; 
-  wire  	cyc_m_i;
-  wire  	stb_m_i;
+  reg  	cyc_m_i;
+  reg  	stb_m_i;
   wire  	cti_m_i;
   wire  	ack_m_o;
   wire 	 	err_m_o;
