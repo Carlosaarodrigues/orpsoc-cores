@@ -141,7 +141,7 @@ module simple_spi #(
       end
 
   // slave select (active low)
-  assign ss_o = ~ss_r;
+ // assign ss_o = ~ss_r; foi para baixo
 
   // write fifo
   assign wfwe = wb_acc & (adr_i == 3'b010) & ack_o &  we_i;
@@ -166,7 +166,7 @@ module simple_spi #(
     if (rst_i)
       ack_o <= 1'b0;
     else if (we_i)
-      ack_o <= wb_acc & !ack_o;
+      ack_o <= wb_acc & !ack_o & ~|state;
     else
       ack_o <= wb_acc & !ack_o & rfempty;
 
@@ -289,8 +289,9 @@ module simple_spi #(
                   bcnt  <= 3'h7;   // set transfer counter
                   treg  <= wfdout; // load transfer register
                   sck_o <= cpol;   // set sck
+		  ss_o = ~ss_r;
 
-                  if (~wfempty) begin
+                  if (~wfempty || wb_re) begin
                     wfre  <= 1'b1;
                     state <= 2'b01;
                     if (cpha) sck_o <= ~sck_o;
@@ -318,7 +319,6 @@ module simple_spi #(
                 end
               end
 
-           2'b10: state <= 2'b00;
          endcase
       end
 
