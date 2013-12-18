@@ -24,10 +24,10 @@ module slave_spiTop (
   reg [7:0]	dat_m_o;
 
   reg [3:0]	sel_m_i;
-  wire  	we_m_i; 
+  reg  	we_m_i; 
   reg  	cyc_m_i;
   reg  	stb_m_i;
-  wire  	cti_m_i;
+  reg  	cti_m_i;
   wire  	ack_m_o;
   wire 	 	err_m_o;
   wire  	rty_m_o;
@@ -44,13 +44,13 @@ module slave_spiTop (
   always @(posedge clk_i)
 	if(rst_i || ss_i)
 	begin         
-	   sel_m_i   =  4'h0;
-	   we_m_i    =  1'b0; 
-	   cyc_m_i   =  1'b0;      
-	   stb_m_i   =  1'b0;
-	   cti_m_i   =  1'b0;    
+	   sel_m_i   <=  4'h0;
+	   we_m_i    <=  1'b0; 
+	   cyc_m_i   <=  1'b0;      
+	   stb_m_i   <=  1'b0;
+	   cti_m_i   <=  1'b0;    
 	   adr_m_i  <=  24'h0000;                 
-	   dat_m_o   =  8'h0;
+	   dat_m_o   <=  8'h0;
 	   state    <=  3'b000;
 	   read     <=  1'b0;
 	   write    <=  1'b0;
@@ -101,9 +101,9 @@ module slave_spiTop (
 
 		3'b100:
 		begin
-		    cyc_m_i  = 1'b1;
-		    stb_m_i  = 1'b1;
-		    sel_m_i  = 4'h1;
+		    cyc_m_i  <= 1'b1;
+		    stb_m_i  <= 1'b1;
+		    sel_m_i  <= 4'h1;
 		    write   <= 1'b1;
 		    state   <= 3'b101;
 		end
