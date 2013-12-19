@@ -141,16 +141,21 @@ module slave_spiTop (
 		    if (word_done)
 		    begin
 			adr_m_i[7:0] <= word;
-	    		word_cnt <= 4'b1000;
+
 
 			if (command == 8'h03) //read mem and write in bus
 			begin
 		    	    read <=1'b0;
-			    state <=  4'b0100;
+			    //state <=  4'b0100;
+		    cyc_m_i  <= 1'b1;
+		    stb_m_i  <= 1'b1;
+		    sel_m_i  <= 4'h1;
+		    state   <= 4'b0101;
 			end
 
 			if (command == 8'h02) //read bus and write in mem
 			begin
+		    	    word_cnt <= 4'b1000;
 		    	    read <=1'b1;
 	   		    size_write <=  8'h0;
 			    state <=  4'b1000;
@@ -163,13 +168,13 @@ module slave_spiTop (
 		    cyc_m_i  <= 1'b1;
 		    stb_m_i  <= 1'b1;
 		    sel_m_i  <= 4'h1;
-		    write   <= 1'b1;
 		    state   <= 4'b0101;
 		end
 		
 		4'b0101:
-		    if(ack_m_o )//&& word_done)
+		    if(ack_m_o && word_done)
 		    begin
+	    		word_cnt <= 4'b1000;
 			word     <= dat_m_o[7:0];
 			cyc_m_i   <= 1'b0;
 			stb_m_i   <= 1'b0;
@@ -180,7 +185,10 @@ module slave_spiTop (
 		    end
 
 		4'b0110:
+		begin
 		    state <= 4'b0100;
+		    write   <= 1'b1;
+		end
 
 		4'b1000:
 		    if (word_done)
@@ -226,11 +234,12 @@ module slave_spiTop (
 		word_cnt <= word_cnt - 1'b1;
 	    end
 
+assign miso_o  = word[7];
 
   always @(negedge sck_i)
 	    if(write && ~word_done)
 	    begin
-	    	miso_o  <= word[7];
+	    	//miso_o  <= word[7];
 		word  <= {word[6:0] , 1'b0};
 		word_cnt <= word_cnt - 1'b1;
 	    end

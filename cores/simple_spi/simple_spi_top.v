@@ -117,8 +117,30 @@ module simple_spi #(
   //
   // Wishbone interface
   wire wb_acc = cyc_i & stb_i;       // WISHBONE access
-  wire wb_wr  = wb_acc & we_i;       // WISHBONE write access
-  wire wb_re  = wb_acc & ~we_i;      // WISHBONE read access
+  wire wb_wr = wb_acc & we_i;       // WISHBONE write access
+  reg wb_re;      // WISHBONE read access
+  reg sig_re;
+
+  always @(posedge clk_i)
+    if (rst_i)
+      begin
+	wb_re <= 1'b0;
+	sig_re <= 1'b0;
+      end
+     else if ( ~wb_re )
+	begin
+	wb_re <= wb_acc & ~we_i  & ~|state;
+	sig_re <= wb_acc & ~we_i  & ~|state;
+	end
+     else if ( wb_re && ack_o)
+	begin
+	wb_re <= 1'b0;
+	end
+     else if ( sig_re )
+	begin
+	sig_re <= 1'b0;
+	end
+
 
   // dat_i
   always @(posedge clk_i)
@@ -152,7 +174,7 @@ module simple_spi #(
     case(adr_i) // synopsys full_case parallel_case
        3'b000: dat_o <= spcr;
        3'b001: dat_o <= spsr;
-       3'b010: dat_o <= rfdout;
+       3'b010: dat_o <= treg;//rfdout;
        3'b011: dat_o <= sper;
        3'b100: dat_o <= {{ (8-SS_WIDTH){1'b0} }, ss_r};
       default: dat_o <= 0;
@@ -168,7 +190,7 @@ module simple_spi #(
     else if (we_i)
       ack_o <= wb_acc & !ack_o & ~|state;
     else
-      ack_o <= wb_acc & !ack_o & rfempty;
+      ack_o <= rfwe & wb_re; //wb_acc & !ack_o & rfwe;
 
   // decode Serial Peripheral Control Register
   wire       spie = spcr[7];   // Interrupt enable bit
@@ -291,8 +313,8 @@ module simple_spi #(
                   sck_o <= cpol;   // set sck
 		  ss_o = ~ss_r;
 
-                  if (~wfempty || wb_re) begin
-                    wfre  <= 1'b1;
+                  if (~wfempty || sig_re) begin
+		    if (~wb_re) wfre  <= 1'b1;
                     state <= 2'b01;
                     if (cpha) sck_o <= ~sck_o;
                   end
@@ -312,7 +334,7 @@ module simple_spi #(
                 if (~|bcnt) begin
                   state <= 2'b00;
                   sck_o <= cpol;
-                  rfwe  <= 1'b1;
+                  if (wb_re)rfwe  <= 1'b1;
                 end else begin
                   state <= 2'b01;
                   sck_o <= ~sck_o;
