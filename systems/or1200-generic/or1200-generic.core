@@ -33,7 +33,8 @@ include_files =
  bench/verilog/wb_intercon.vh
 
 [icarus]
-iverilog_options = -g2005
+iverilog_options =
+
 
 [verilator]
 source_type = systemC

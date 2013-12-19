@@ -170,7 +170,7 @@ module i2c_master_bit_ctrl (
     input [1:0]       	slave_cmd ,
     input             	sl_wait,
     output            	slave_reset,
-    output	      	recev_ack,  //slave ack
+    output reg	      	recev_ack,  //slave ack
     output	      	sto_condition,  //stop signal
     output		sta_condition	//start signal
 
@@ -295,7 +295,6 @@ module i2c_master_bit_ctrl (
     // detect stop condition => detect rising edge on SDA while SCL is high
     reg sta_condition;
     reg sto_condition;
-
     always @(posedge clk or negedge nReset)
       if (~nReset)
       begin

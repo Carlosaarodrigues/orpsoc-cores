@@ -300,7 +300,7 @@ assign	wb_s2m_rom_ack_o = 0;
 	// Wishbone slave interface
 	.wb_clk_i	(wb_clk),
 	.wb_rst_i	(wb_rst),
-	.wb_adr_i	(wb_m2s_uart8_adr),
+	.wb_adr_i	(wb_m2s_uart8_adr[2:0]),
 	.wb_dat_i	(wb_m2s_uart8_dat),
 	.wb_we_i	(wb_m2s_uart8_we ),
 	.wb_stb_i	(wb_m2s_uart8_stb),
