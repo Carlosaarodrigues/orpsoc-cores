@@ -111,7 +111,7 @@ module simple_spi #(
   // misc signals
   wire      tirq;     // transfer interrupt (selected number of transfers done)
   wire      wfov;     // write fifo overrun (writing while fifo full)
-  reg [1:0] state;    // statemachine state
+  reg [2:0] state;    // statemachine state
   reg [2:0] bcnt;
 
   //
@@ -121,8 +121,9 @@ module simple_spi #(
   reg wb_re;      // WISHBONE read access
   reg sig_re;
 
+
   always @(posedge clk_i)
-    if (rst_i)
+    if (rst_i || ~|ss_r)
       begin
 	wb_re <= 1'b0;
 	sig_re <= 1'b0;
@@ -130,17 +131,16 @@ module simple_spi #(
      else if ( ~wb_re )
 	begin
 	wb_re <= wb_acc & ~we_i  & ~|state;
-	sig_re <= wb_acc & ~we_i  & ~|state;
+	sig_re <= sig_re|wb_acc & ~we_i  & ~|state;
 	end
      else if ( wb_re && ack_o)
 	begin
 	wb_re <= 1'b0;
 	end
-     else if ( sig_re )
+     else if ( ss_o )
 	begin
 	sig_re <= 1'b0;
 	end
-
 
   // dat_i
   always @(posedge clk_i)
@@ -162,8 +162,6 @@ module simple_spi #(
           ss_r <= dat_i[SS_WIDTH-1:0];
       end
 
-  // slave select (active low)
- // assign ss_o = ~ss_r; foi para baixo
 
   // write fifo
   assign wfwe = wb_acc & (adr_i == 3'b010) & ack_o &  we_i;
@@ -174,14 +172,14 @@ module simple_spi #(
     case(adr_i) // synopsys full_case parallel_case
        3'b000: dat_o <= spcr;
        3'b001: dat_o <= spsr;
-       3'b010: dat_o <= treg;//rfdout;
+       3'b010: dat_o <= rfdout;
        3'b011: dat_o <= sper;
        3'b100: dat_o <= {{ (8-SS_WIDTH){1'b0} }, ss_r};
       default: dat_o <= 0;
     endcase
 
   // read fifo
-  assign rfre = wb_acc & (adr_i == 3'b010) & ack_o & ~we_i;
+  assign rfre = wb_acc & (adr_i == 3'b010) & ~ack_o & ~we_i & ~rfempty;
 
   // ack_o
   always @(posedge clk_i)
@@ -190,11 +188,10 @@ module simple_spi #(
     else if (we_i)
       ack_o <= wb_acc & !ack_o & ~|state;
     else
-      ack_o <= rfwe & wb_re; //wb_acc & !ack_o & rfwe;
-
+      ack_o <= wb_acc & !ack_o & rfre;
   // decode Serial Peripheral Control Register
   wire       spie = spcr[7];   // Interrupt enable bit
-  wire       spe  = spcr[6];   // System Enable bit
+  wire       spe = spcr[6];   // System Enable bit
   wire       dwom = spcr[5];   // Port D Wired-OR Mode Bit
   wire       mstr = spcr[4];   // Master Mode Select Bit
   wire       cpol = spcr[3];   // Clock Polarity Bit
@@ -243,7 +240,7 @@ module simple_spi #(
   rfifo(
 	.clk   ( clk_i   ),
 	.rst   ( ~rst_i  ),
-	.clr   ( ~spe    ),
+	.clr   ( ~(spe && |ss_r)   ),
 	.din   ( treg    ),
 	.we    ( rfwe    ),
 	.dout  ( rfdout  ),
@@ -255,7 +252,7 @@ module simple_spi #(
   wfifo(
 	.clk   ( clk_i   ),
 	.rst   ( ~rst_i  ),
-	.clr   ( ~spe    ),
+	.clr   ( ~(spe && |ss_r)   ),
 	.din   ( dat_i   ),
 	.we    ( wfwe    ),
 	.dout  ( wfdout  ),
@@ -291,9 +288,9 @@ module simple_spi #(
 
   // transfer statemachine
   always @(posedge clk_i)
-    if (~spe | rst_i)
+    if (~spe | rst_i )
       begin
-          state <= 2'b00; // idle
+          state <= 3'b000; // idle
           bcnt  <= 3'h0;
           treg  <= 8'h00;
           wfre  <= 1'b0;
@@ -306,40 +303,44 @@ module simple_spi #(
          rfwe <= 1'b0;
 
          case (state) //synopsys full_case parallel_case
-           2'b00: // idle state
+           3'b000: // idle state
               begin
                   bcnt  <= 3'h7;   // set transfer counter
                   treg  <= wfdout; // load transfer register
                   sck_o <= cpol;   // set sck
 		  ss_o = ~ss_r;
 
-                  if (~wfempty || sig_re) begin
-		    if (~wb_re) wfre  <= 1'b1;
-                    state <= 2'b01;
+                  if (~wfempty || (sig_re && ~rffull)) begin
+		    if (~sig_re) wfre  <= 1'b1;
+                    state <= 3'b001;
                     if (cpha) sck_o <= ~sck_o;
                   end
               end
 
-           2'b01: // clock-phase2, next data
+           3'b001: // clock-phase2, next data
               if (ena) begin
                 sck_o   <= ~sck_o;
-                state   <= 2'b11;
+                state   <= 3'b011;
               end
 
-           2'b11: // clock phase1
+           3'b011: // clock phase1
               if (ena) begin
                 treg <= {treg[6:0], miso_i};
                 bcnt <= bcnt -3'h1;
 
                 if (~|bcnt) begin
-                  state <= 2'b00;
+                  state <= 3'b100;
                   sck_o <= cpol;
-                  if (wb_re)rfwe  <= 1'b1;
+                  if (sig_re)rfwe  <= 1'b1;
                 end else begin
-                  state <= 2'b01;
+                  state <= 3'b001;
                   sck_o <= ~sck_o;
                 end
               end
+
+	   3'b100: state <= 3'b101;
+
+	   3'b101: state <= 3'b000;
 
          endcase
       end
