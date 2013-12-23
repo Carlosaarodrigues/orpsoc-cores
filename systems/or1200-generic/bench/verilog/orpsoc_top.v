@@ -293,8 +293,8 @@ assign	wb_s2m_rom_ack_o = 0;
     .wbs_rty_i (wb_s2m_uart8_rty));
 
 
-    assign	wb8_s2m_uart0_err = 0;
-    assign	wb8_s2m_uart0_rty = 0;
+    assign	wb_s2m_uart8_err = 0;
+    assign	wb_s2m_uart8_rty = 0;
 
     uart_top uart16550_0 (
 	// Wishbone slave interface
@@ -486,7 +486,7 @@ wire		wb8_s2m_i2c_ack;
 wire		wb8_s2m_i2c_err;
 wire		wb8_s2m_i2c_rty;
 
-i2c_master_top#(.DEFAULT_SLAVE_ADDR(HV1_SADR))i2c_master (
+i2c_master_top#()i2c_master (
    .wb_clk_i			     (wb_clk),
    .wb_rst_i			     (wb_rst),
    .arst_i			     (wb_rst),
@@ -628,10 +628,10 @@ wire 		spi_miso_i; //data slave -> master
 //
 // Assigns
 //
-assign  wbs_d_spi_err_o = 0;
-assign  wbs_d_spi_rty_o = 0;
-assign  spi_hold_n_o = 1;
-assign  spi_w_n_o = 1;
+assign  wb8_s2m_spi_err = 0;
+assign  wb8_s2m_spi_rty = 0;
+//assign  spi_hold_n_o = 1; ver se funcionar assim
+//assign  spi_w_n_o = 1;
 
 simple_spi spi_master(
 	// Wishbone slave interface

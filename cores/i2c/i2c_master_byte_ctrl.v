@@ -160,8 +160,10 @@ module i2c_master_byte_ctrl
 
 
 	//Slave signals
-	wire        slave_adr_received;
+	wire        	slave_adr_received;
 	wire [7:0] 	slave_adr;
+	wire		slave_reset;
+	wire		receved_ask;
 
 
    reg [1:0] 	slave_cmd;

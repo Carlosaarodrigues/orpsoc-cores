@@ -21,23 +21,24 @@ module slave_spiTop (
 
   reg [23:0]	adr_m_i;
   reg [7:0]	dat_m_i;
-  wire [31:0]	dat_m_o;
+  wire [7:0]	dat_m_o;
   reg [7:0]	size_write;
 
   reg [3:0]	sel_m_i;
-  reg  	we_m_i; 
-  reg  	cyc_m_i;
-  reg  	stb_m_i;
-  reg  	cti_m_i;
+  reg  		we_m_i; 
+  reg  		cyc_m_i;
+  reg  		stb_m_i;
+  reg [2:0]	cti_m_i;
   wire  	ack_m_o;
   wire 	 	err_m_o;
   wire  	rty_m_o;
+  wire		word_done;
 
 
 
   
    localparam wb_dw = 8;
-   localparam MEM_SIZE_BITS = 24;
+   localparam MEM_SIZE_BITS = 26;
 
  assign word_done = ~|word_cnt;
 
@@ -49,7 +50,7 @@ module slave_spiTop (
 	   we_m_i      <=  1'b0; 
 	   cyc_m_i     <=  1'b0;      
 	   stb_m_i     <=  1'b0;
-	   cti_m_i     <=  1'b0;    
+	   cti_m_i     <=  3'b000;    
 	   adr_m_i    <=  24'h0000;                 
 	   dat_m_i     <=  8'h0;
 	   command     <=  8'h0;
@@ -64,7 +65,7 @@ module slave_spiTop (
 	   sel_m_i   <=  4'h0;
 	   cyc_m_i   <=  1'b0;      
 	   stb_m_i   <=  1'b0;
-	   cti_m_i   <=  1'b0;    
+	   cti_m_i   <=  3'b000;   
 	   adr_m_i  <=  24'h0000;                 
 	   dat_m_i   <=  8'h0;
       	   command     <=  8'h0;
@@ -176,7 +177,7 @@ module slave_spiTop (
 		    if(ack_m_o && word_done)
 		    begin
 	    		word_cnt <= 4'b1000;
-			word     <= dat_m_o[7:0];
+			word     <= dat_m_o;
 			cyc_m_i   <= 1'b0;
 			stb_m_i   <= 1'b0;
 			sel_m_i   <= 4'h0;
@@ -252,15 +253,17 @@ module slave_spiTop (
 
    ram_wb_b3 #(
    //wb_bfm_memory #(.DEBUG (0),
-	       .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
-	       .mem_adr_width (MEM_SIZE_BITS))
-   flash
+	        .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
+	        .mem_adr_width (MEM_SIZE_BITS),
+		.aw (26),
+		.dw (8))
+  flash
      (
       //Wishbone Master interface
       .wb_clk_i (clk_i),
       .wb_rst_i (rst_i),
       .wb_adr_i	({adr_m_i,2'b00} & (2**MEM_SIZE_BITS-1)),
-      .wb_dat_i	({24'd0,dat_m_i}),
+      .wb_dat_i	(dat_m_i),
       .wb_sel_i	(sel_m_i),
       .wb_we_i	(we_m_i ),
       .wb_cyc_i	(cyc_m_i),

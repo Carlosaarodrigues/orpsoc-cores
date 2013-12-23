@@ -38,7 +38,7 @@ iverilog_options =
 
 [verilator]
 source_type = systemC
-verilator_options = -Wno-fatal --trace
+verilator_options = --trace
 src_files = 
  bench/verilator/OrpsocAccess.cpp
  bench/verilator/MemoryLoad.cpp

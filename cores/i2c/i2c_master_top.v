@@ -79,11 +79,10 @@ module i2c_master_top
   (
 	wb_clk_i, wb_rst_i, arst_i, wb_adr_i, wb_dat_i, wb_dat_o,
 	wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_inta_o,
-	scl_pad_i, scl_pad_o, scl_padoen_o, sda_pad_i, sda_pad_o, sda_padoen_o,slave_dat_avail,slave_dat_req,stop,start );
+	scl_pad_i, scl_pad_o, scl_padoen_o, sda_pad_i, sda_pad_o, sda_padoen_o );
 
 	// parameters
     parameter ARST_LVL = 1'b1; // asynchronous reset level
-    parameter [6:0] DEFAULT_SLAVE_ADDR  = 7'b0100000;
 	//
 	// inputs & outputs
 	//
@@ -117,10 +116,10 @@ module i2c_master_top
 	output sda_padoen_o;    // SDA-line output enable (active low)
 
 	// mem
-	output slave_dat_avail;
-	output slave_dat_req;
-	output stop;
-	output start;
+	wire slave_dat_avail;
+	wire slave_dat_req;
+	wire stop; 	//unused
+	wire start;	//unused
 
 
 	//
