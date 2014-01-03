@@ -224,7 +224,7 @@ assign	wb_s2m_rom_ack_o = 0;
    ////////////////////////////////////////////////////////////////////////
    ram_wb_b3 #(
    //wb_bfm_memory #(.DEBUG (0),
-	       .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
+	       .mem_size_bytes (2**MEM_SIZE_BITS),
 	       .mem_adr_width (MEM_SIZE_BITS))
    wb_bfm_memory0
      (
@@ -550,6 +550,11 @@ i2c_master_top#()i2c_master (
 
    ////////////////////////////////////////////////////////////////////////
    `else // !`ifdef I2C
+
+   wire [7:0] 	wb8_s2m_i2c_dat;
+   wire		wb8_s2m_i2c_ack;
+   wire		wb8_s2m_i2c_err;
+   wire		wb8_s2m_i2c_rty;
 
    assign wb8_s2m_i2c_dat = 0;
    assign wb8_s2m_i2c_ack = 0;

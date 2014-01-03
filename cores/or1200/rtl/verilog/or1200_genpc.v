@@ -275,7 +275,7 @@ reg				wait_lsu;
    always @(posedge clk or `OR1200_RST_EVENT rst)
      // default value 
      if (rst == `OR1200_RST_VALUE) begin
-	pcreg_default <=  (boot_adr >>2) - 4;
+	pcreg_default <=  boot_adr[31:2] >>2 -4; //(boot_adr >>2) - 4;
 	pcreg_select <=  1'b1;// select async. value due to reset state
      end
    // selected value (different from default) is written into FF after

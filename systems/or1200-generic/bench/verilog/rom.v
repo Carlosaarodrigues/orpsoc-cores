@@ -111,16 +111,19 @@ if(b3_burst) begin : gen_b3_burst
      else
        wb_ack_o <= 0;
 
-     end else begin
-	always @(wb_adr_i)
-	  adr <= wb_adr_i;
+end 
+else begin
+
+    always @(wb_adr_i)
+	adr = wb_adr_i;
 	
-	always @ (posedge wb_clk or posedge wb_rst)
-	  if (wb_rst)
+    always @ (posedge wb_clk or posedge wb_rst)
+	if (wb_rst)
 	    wb_ack_o <= 1'b0;
-	  else
+	else
 	    wb_ack_o <= wb_stb_i & wb_cyc_i & !wb_ack_o;
 	
-     end
+end
+
 endgenerate   
 endmodule 

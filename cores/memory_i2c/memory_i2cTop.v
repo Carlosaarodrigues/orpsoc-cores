@@ -32,7 +32,7 @@ module memory_i2c (
    wire		start;
    wire		stop;
 
-    reg[6:0]	state;
+    reg[4:0]	state;
     reg[7:0] 	adr;
 
 
@@ -167,15 +167,16 @@ parameter [4:0] read_a  = 5'b1_0000;
 ////////////////////////////////////////////////////////////////////////
 
    ram_wb_b3 #(
-   //wb_bfm_memory #(.DEBUG (0),
 	       .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
-	       .mem_adr_width (MEM_SIZE_BITS))
+	       .mem_adr_width (MEM_SIZE_BITS),
+		.aw (32),
+		.dw (8))
    flash
      (
       //Wishbone Master interface
       .wb_clk_i (clk_i),
       .wb_rst_i (rst_i),
-      .wb_adr_i	(adr_m_i & (2**MEM_SIZE_BITS-1)),
+      .wb_adr_i	({6'b000000,adr_m_i} & (2**MEM_SIZE_BITS-1)),
       .wb_dat_i	(dat_m_i),
       .wb_sel_i	(sel_m_i),
       .wb_we_i	(we_m_i ),

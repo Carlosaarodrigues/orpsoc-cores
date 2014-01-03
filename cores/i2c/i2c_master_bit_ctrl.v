@@ -698,8 +698,8 @@ module i2c_master_bit_ctrl (
             scl_oen_slave   <=  1'b1;
 
           case (slave_state)
-            slave_idle:
 
+            slave_idle:
               begin
 
                  case (slave_cmd) // synopsys full_case parallel_case

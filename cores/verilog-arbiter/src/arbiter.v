@@ -29,8 +29,8 @@ module arbiter
     NUM_PORTS = 6)
    (input                       clk,
     input                       rst,
-    input      [0:NUM_PORTS-1]  request,
-    output reg [0:NUM_PORTS-1]  grant,
+    input      [NUM_PORTS-1:0]  request,
+    output reg [NUM_PORTS-1:0]  grant,
     output reg                  active
 );
 
@@ -89,7 +89,7 @@ module arbiter
     generate
         for (xx = 0; xx < NUM_PORTS; xx = xx + 1) begin : ORDER_
 
-            assign token_lookahead[xx]  = {token, token[NUM_PORTS-1:xx]};
+            assign token_lookahead[xx]  =  (token >> xx) | (token << (NUM_PORTS-xx));; //{token, token[NUM_PORTS-1:xx]};
 
             assign order[xx]            = |(token_lookahead[xx] & request);
 

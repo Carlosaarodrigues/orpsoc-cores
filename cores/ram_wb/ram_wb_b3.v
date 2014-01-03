@@ -85,8 +85,7 @@ module ram_wb_b3
 
    wire using_burst_adr = wb_b3_trans;
    
-   wire burst_access_wrong_wb_adr = (using_burst_adr & 
-				     (adr != wb_adr_i[mem_adr_width-1:2]));
+   wire burst_access_wrong_wb_adr = (using_burst_adr & (adr != wb_adr_i[mem_adr_width-1:2]));
 
    // Address registering logic
    always@(posedge wb_clk_i)
@@ -119,7 +118,7 @@ module ram_wb_b3
 
    // Error when out of bounds of memory - skip top nibble of address in case
    // this is mapped somewhere other than 0x0.
-   wire addr_err  = wb_cyc_i & wb_stb_i & (|wb_adr_i[aw-1-4:mem_adr_width]);  
+   wire addr_err  = wb_cyc_i & wb_stb_i & (|wb_adr_i[aw-1-4:mem_adr_width]); // pensar nisto melhor
    
 
 
@@ -197,7 +196,7 @@ module ram_wb_b3
    endfunction // get_mem8   
 
    // Function to write RAM (for use by Verilator).
-   function set_mem32;
+   function [dw-1:0] set_mem32;
       // verilator public
       input [aw-1:0] 		addr;
       input [dw-1:0] 		data;

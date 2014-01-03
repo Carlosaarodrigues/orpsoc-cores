@@ -255,14 +255,14 @@ module slave_spiTop (
    //wb_bfm_memory #(.DEBUG (0),
 	        .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
 	        .mem_adr_width (MEM_SIZE_BITS),
-		.aw (26),
+		.aw (32),
 		.dw (8))
   flash
      (
       //Wishbone Master interface
       .wb_clk_i (clk_i),
       .wb_rst_i (rst_i),
-      .wb_adr_i	({adr_m_i,2'b00} & (2**MEM_SIZE_BITS-1)),
+      .wb_adr_i	({6'b000000,adr_m_i,2'b00} & (2**MEM_SIZE_BITS-1)),
       .wb_dat_i	(dat_m_i),
       .wb_sel_i	(sel_m_i),
       .wb_we_i	(we_m_i ),

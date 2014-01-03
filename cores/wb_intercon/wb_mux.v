@@ -94,13 +94,16 @@ module wb_mux
 // Master/slave connection
 ///////////////////////////////////////////////////////////////////////////////
 
-   reg  			 wbm_err;
-   wire [$clog2(num_slaves)-1:0] slave_sel;
-   wire [$clog2(num_slaves)-1:0] slave_sel_int [0:num_slaves-1];
+   reg  			   wbm_err;
+   wire [$clog2(num_slaves)-1:0]   slave_sel;
+   reg  [$clog2(num_slaves)-1:0]    slave_sel_int [0:num_slaves-1];
 
-   wire [num_slaves-1:0] 	 match;
+   wire [num_slaves-1:0] 	   match;
 
-   genvar 			 idx;
+   genvar		   	   idx;
+   wire  [num_slaves-1:0]	   idxx;
+   wire  [$clog2(num_slaves)-1:0]  aux_idxx;
+   reg   [$clog2(num_slaves)-1:0]  aux;
 
    generate
       for(idx=0; idx<num_slaves ; idx=idx+1) begin : addr_match
@@ -109,11 +112,17 @@ module wb_mux
    endgenerate
 
    assign slave_sel_int[0] = 0;
-   generate
-      for(idx=1; idx<num_slaves ; idx=idx+1) begin : select_mux
-	 assign slave_sel_int[idx] = match[idx] ? idx : slave_sel_int[idx-1];
+
+   always @*
+   begin
+	aux = {$clog2(num_slaves){1'b0}};
+      for(idxx={{num_slaves-1{1'b0}},1'b1}; idxx<num_slaves ; idxx=idxx+{{num_slaves-1{1'b0}},1'b1}) begin : select_mux
+	 aux_idxx = idxx[$clog2(num_slaves)-1:0];
+	 slave_sel_int[aux_idxx] = match[aux_idxx] ? aux_idxx : aux;
+	 aux = slave_sel_int[aux_idxx];
       end
-   endgenerate
+   end
+
    assign slave_sel = slave_sel_int[num_slaves-1];
 
    always @(posedge wb_clk_i)
@@ -124,7 +133,7 @@ module wb_mux
    assign wbs_sel_o = {num_slaves{wbm_sel_i}};
    assign wbs_we_o  = {num_slaves{wbm_we_i}};
 
-   assign wbs_cyc_o = match & (wbm_cyc_i << slave_sel);
+   assign wbs_cyc_o = match & ({ {num_slaves-1{1'b0}} ,wbm_cyc_i} << slave_sel);
    assign wbs_stb_o = {num_slaves{wbm_stb_i}};
    
    assign wbs_cti_o = {num_slaves{wbm_cti_i}};

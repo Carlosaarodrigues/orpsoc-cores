@@ -74,11 +74,11 @@ module wb_arbiter
 // Parameters
 ///////////////////////////////////////////////////////////////////////////////
 
-   wire [num_masters-1:0]     grant;
-   wire [$clog2(num_masters)-1:0]      master_sel;
-   wire 		      active;
+   wire [num_masters-1:0]         	grant;
+   wire [$clog2(num_masters)-1:0]       master_sel;
+   wire 		      		active;
 
-   wire [$clog2(num_masters)-1:0] master_sel_int [0:num_masters-1];
+   wire [$clog2(num_masters)-1:0] 	master_sel_int [0:num_masters-1];
    
    arbiter
      #(.NUM_PORTS (num_masters))
@@ -89,15 +89,21 @@ module wb_arbiter
       .grant (grant),
       .active (active));
 
-   genvar 			  idx;
-   
+   wire [num_masters-1:0]	      idx;
+   wire [$clog2(num_masters)-1:0]     aux_idx;
+   reg  [$clog2(num_masters)-1:0]     aux;
+  
    assign master_sel_int[0] = 0;
-   
-   generate
-      for(idx=1; idx<num_masters ; idx=idx+1) begin : select_mux
-	 assign master_sel_int[idx] = grant[idx] ? idx : master_sel_int[idx-1];
+
+   always @*
+   begin
+	aux = {$clog2(num_masters){1'b0}};
+      for(idx={{num_masters-1{1'b0}},1'b1}; idx<num_masters ; idx=idx+{{num_masters-1{1'b0}},1'b1}) begin : select_mux
+          aux_idx = idx[$clog2(num_masters)-1:0];
+	  master_sel_int[aux_idx] = grant[aux_idx] ? aux_idx  : aux;
+	  aux =  master_sel_int[aux_idx];
       end
-   endgenerate
+   end
    
    assign master_sel = master_sel_int[num_masters-1];
    
@@ -112,8 +118,8 @@ module wb_arbiter
    assign wbs_bte_o = wbm_bte_i[master_sel*2+:2];
 
    assign wbm_dat_o = {num_masters{wbs_dat_i}};
-   assign wbm_ack_o = ((wbs_ack_i & active) << master_sel);
-   assign wbm_err_o = ((wbs_err_i & active) << master_sel);
-   assign wbm_rty_o = ((wbs_rty_i & active) << master_sel);
+   assign wbm_ack_o = ({1'b0,(wbs_ack_i & active)} << master_sel);
+   assign wbm_err_o = ({1'b0,(wbs_err_i & active)} << master_sel);
+   assign wbm_rty_o = ({1'b0,(wbs_rty_i & active)} << master_sel);
    
 endmodule // wb_arbiter
