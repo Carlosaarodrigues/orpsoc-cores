@@ -48,6 +48,8 @@
 `ifdef SPI
 `define FLASH_SPI
 `endif
+
+
 /* 
 `define SPI0_SLAVE_SELECTS
 `define RAM_WB

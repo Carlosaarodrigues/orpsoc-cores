@@ -190,6 +190,8 @@ module i2c_master_top
 				wb_dat_o <= rxr;
 			end
 
+	   	 default: wb_dat_o <= rxr;
+
 	  endcase
 	end
 

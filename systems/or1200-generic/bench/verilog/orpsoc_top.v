@@ -474,6 +474,12 @@ wire 		i2c_scl_padoen_o;
 wire 		i2c_sda_pad_o;
 wire 		i2c_sda_padoen_o;
 
+//slave wires
+wire 		i2c_s_scl_padoen_o;
+wire 		i2c_s_sda_padoen_o;
+//
+
+
 wire [31:0]	wb8_m2s_i2c_adr;
 wire [1:0]	wb8_m2s_i2c_bte;
 wire [2:0]	wb8_m2s_i2c_cti;
@@ -577,9 +583,7 @@ i2c_master_top#()i2c_master (
 //
 wire 		i2c_s_irq;
 wire 		i2c_s_scl_pad_o;
-wire 		i2c_s_scl_padoen_o;
 wire 		i2c_s_sda_pad_o;
-wire 		i2c_s_sda_padoen_o;
 
 memory_i2c Flash_i2c(
    .clk_i		(wb_clk),

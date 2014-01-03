@@ -12,7 +12,7 @@ module memory_i2c (
     output 			sda_pad_o,
     output 			irq_o);
 
-    wire[9:0]	adr_m_i;
+    wire[7:0]	adr_m_i;
     wire[7:0]	dat_m_i;
     wire[3:0]	sel_m_i;
     wire	we_m_i ;
@@ -34,10 +34,6 @@ module memory_i2c (
 
     reg[4:0]	state;
     reg[7:0] 	adr;
-
-
-   localparam wb_dw = 8;
-   localparam MEM_SIZE_BITS = 8;
 
 
    always @ (posedge clk_i or posedge rst_i)
@@ -88,7 +84,7 @@ module memory_i2c (
 		    ////read memory 
 		    read:
 		    begin
-			    adr_m_i <= {adr,2'b00};
+			    adr_m_i <= adr;
 			    cyc_m_i <= 1'b1;
 			    stb_m_i <= 1'b1;
 			    sel_m_i <= 4'h1;
@@ -112,7 +108,7 @@ module memory_i2c (
 		    begin
 		   	if(data_avail)
 			begin
-			    adr_m_i <= {adr,2'b00};
+			    adr_m_i <= adr;
 			    dat_m_i <= dat_s_o;
 			    we_m_i  <= 1'b1;
 			    stb_m_i <= 1'b1;
@@ -143,6 +139,9 @@ module memory_i2c (
 			   state <= write;	
 			end
 		    end
+
+		    default: state <= idle;
+
 		endcase
 
 
@@ -166,17 +165,15 @@ parameter [4:0] read_a  = 5'b1_0000;
 //
 ////////////////////////////////////////////////////////////////////////
 
-   ram_wb_b3 #(
-	       .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
-	       .mem_adr_width (MEM_SIZE_BITS),
-		.aw (32),
+   wb_memory #(
+		.aw (8),
 		.dw (8))
    flash
      (
       //Wishbone Master interface
       .wb_clk_i (clk_i),
       .wb_rst_i (rst_i),
-      .wb_adr_i	({6'b000000,adr_m_i} & (2**MEM_SIZE_BITS-1)),
+      .wb_adr_i	(adr_m_i),
       .wb_dat_i	(dat_m_i),
       .wb_sel_i	(sel_m_i),
       .wb_we_i	(we_m_i ),

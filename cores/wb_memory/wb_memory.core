@@ -1,0 +1,10 @@
+CAPI=1
+[main]
+description = Wishbone memory
+
+[verilog]
+src_files =
+ wb_memory.v
+
+[plusargs]
+testcase = file VMEM file containing the test case

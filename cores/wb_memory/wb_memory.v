@@ -1,11 +1,10 @@
-module ram_wb_b3
+module wb_memory
  #(//Wishbone parameters
    parameter dw = 32,
    parameter aw = 32,
    // Memory parameters
-   parameter memory_file = "",
-   parameter mem_size_bytes = 32'h0000_5000, // 20KBytes
-   parameter mem_adr_width = 15) //(log2(mem_size_bytes));
+   parameter memory_file = "")
+
   (input 	   wb_clk_i,
    input 	   wb_rst_i,
    
@@ -24,16 +23,11 @@ module ram_wb_b3
    output [dw-1:0] wb_dat_o);
 
 
-   
-   localparam bytes_per_dw = (dw/8);
-   localparam adr_width_for_num_word_bytes = 2; //(log2(bytes_per_dw))
-   localparam mem_words = (mem_size_bytes/bytes_per_dw);   
-
    // synthesis attribute ram_style of mem is block
-   reg [dw-1:0] 	mem [ 0 : mem_words-1 ]   /* verilator public */ /* synthesis ram_style = no_rw_check */;
+   reg [dw-1:0] 	mem [ 0 : 2**aw-1 ]   /* verilator public */ /* synthesis ram_style = no_rw_check */;
 
    // Register to address internal memory array
-   reg [(mem_adr_width-adr_width_for_num_word_bytes)-1:0] adr;
+   reg [aw-1:0] adr;
    
 
    // Register to indicate if the cycle is a Wishbone B3-registered feedback 
@@ -41,7 +35,7 @@ module ram_wb_b3
    reg 				   wb_b3_trans;
    
    // Register to use for counting the addresses when doing burst accesses
-   reg [mem_adr_width-adr_width_for_num_word_bytes-1:0]  burst_adr_counter;
+   reg [aw-1:0]  burst_adr_counter;
 
    // Logic to detect if there's a burst access going on
    wire wb_b3_trans_start = ((wb_cti_i == 3'b001)|(wb_cti_i == 3'b010)) & 
@@ -74,7 +68,7 @@ module ram_wb_b3
        // Kick off burst_adr_counter, this assumes 4-byte words when getting
        // address off incoming Wishbone bus address! 
        // So if dw is no longer 4 bytes, change this!
-       burst_adr_counter = wb_adr_i[mem_adr_width-1:2];
+       burst_adr_counter = wb_adr_i;
      else if ((wb_cti_i_r == 3'b010) & wb_ack_o & wb_b3_trans) // Incrementing burst
        case(wb_bte_i_r)
 	 2'b00 : burst_adr_counter      = adr + 1; // Linear burst
@@ -85,7 +79,7 @@ module ram_wb_b3
 
    wire using_burst_adr = wb_b3_trans;
    
-   wire burst_access_wrong_wb_adr = (using_burst_adr & (adr != wb_adr_i[mem_adr_width-1:2]));
+   wire burst_access_wrong_wb_adr = (using_burst_adr & (adr != wb_adr_i));
 
    // Address registering logic
    always@(posedge wb_clk_i)
@@ -94,13 +88,13 @@ module ram_wb_b3
      else if (using_burst_adr)
        adr <= burst_adr_counter;
      else if (wb_cyc_i & wb_stb_i)
-       adr <= wb_adr_i[mem_adr_width-1:2];
+       adr <= wb_adr_i;
 
    
    assign wb_rty_o = 0;
 
    // mux for data to ram, RMW on part sel != 4'hf
-   wire [31:0] wr_data;
+   wire [dw-1:0] wr_data;
    if(dw == 32) assign wr_data[31:24] = wb_sel_i[3] ? wb_dat_i[31:24] : wb_dat_o[31:24];
    if(dw >= 24) assign wr_data[23:16] = wb_sel_i[2] ? wb_dat_i[23:16] : wb_dat_o[23:16];
    if(dw >= 16) assign wr_data[15: 8] = wb_sel_i[1] ? wb_dat_i[15: 8] : wb_dat_o[15: 8];
@@ -118,15 +112,14 @@ module ram_wb_b3
 
    // Error when out of bounds of memory - skip top nibble of address in case
    // this is mapped somewhere other than 0x0.
-   wire addr_err  = wb_cyc_i & wb_stb_i & (|wb_adr_i[aw-1-4:mem_adr_width]); // pensar nisto melhor
+   wire addr_err  = 1'b0;
    
 
 
    // Ack Logic
    reg wb_ack_o_r;
 
-   assign wb_ack_o = wb_ack_o_r & wb_stb_i & 
-		     !(burst_access_wrong_wb_adr | addr_err);
+   assign wb_ack_o = wb_ack_o_r & wb_stb_i & !(burst_access_wrong_wb_adr | addr_err);
    
    //Handle wb_ack
    always @ (posedge wb_clk_i)
@@ -175,17 +168,17 @@ module ram_wb_b3
 //synthesis translate_on
 
    // Function to access RAM (for use by Verilator).
-   function [31:0] get_mem32;
+   function [dw-1:0] get_mem32;
       // verilator public
       input [aw-1:0] 		addr;
       get_mem32 = mem[addr];
    endfunction // get_mem32   
 
-   // Function to access RAM (for use by Verilator).
+/*   // Function to access RAM (for use by Verilator).
    function [7:0] get_mem8;
       // verilator public
       input [aw-1:0] 		addr;
-            reg [31:0] 		temp_word;
+            reg [dw-1:0] 		temp_word;
       begin
 	 temp_word = mem[{addr[aw-1:2],2'd0}];
 	 // Big endian mapping.
@@ -194,7 +187,7 @@ module ram_wb_b3
 		    (addr[1:0]==2'b10) ? temp_word[15:8] : temp_word[7:0];
 	 end
    endfunction // get_mem8   
-
+*/
    // Function to write RAM (for use by Verilator).
    function [dw-1:0] set_mem32;
       // verilator public

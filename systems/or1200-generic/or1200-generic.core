@@ -12,6 +12,7 @@ depend =
  uart16550
  gpio
  i2c
+ wb_memory
  memory_i2c
  simple_spi
  memory_spi

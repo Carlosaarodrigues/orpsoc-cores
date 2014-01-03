@@ -508,6 +508,8 @@ module i2c_master_byte_ctrl
 	                cmd_ack  <= 1'b1;
 	            end
 
+		default: c_state  <= ST_IDLE;
+
 	      endcase
 	  end
 endmodule

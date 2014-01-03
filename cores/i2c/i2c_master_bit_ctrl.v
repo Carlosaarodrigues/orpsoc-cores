@@ -198,6 +198,7 @@ module i2c_master_bit_ctrl (
     //
     // module body
     //
+    reg [15:0] aux_clk_cnt;
 
     // whenever the slave is not ready it can delay the cycle by pulling SCL low
     // delay scl_oen
@@ -239,7 +240,10 @@ module i2c_master_bit_ctrl (
     always @(posedge clk or negedge nReset)
       if      (!nReset     ) filter_cnt <= 14'h0;
       else if (rst || !ena ) filter_cnt <= 14'h0;
-      else if (~|filter_cnt) filter_cnt <= clk_cnt >> 2; //16x I2C bus frequency
+      else if (~|filter_cnt) begin
+	aux_clk_cnt <= clk_cnt >> 2;
+    	filter_cnt <= aux_clk_cnt[13:0]; //16x I2C bus frequency
+      end
       else                   filter_cnt <= filter_cnt -1;
 
 
@@ -752,6 +756,8 @@ module i2c_master_bit_ctrl (
                     slave_state <=  slave_wait_next_cmd_1;
 		end
               end
+
+	    default: slave_state <=  slave_idle;
 
           endcase // case (slave_state)
        end

@@ -281,6 +281,7 @@ module simple_spi #(
         4'b1001: clkcnt <= 12'h1ff; // 1024
         4'b1010: clkcnt <= 12'h3ff; // 2048
         4'b1011: clkcnt <= 12'h7ff; // 4096
+	default: espr = 4'b0000;
       endcase
 
   // generate clock enable signal
@@ -341,6 +342,8 @@ module simple_spi #(
 	   3'b100: state <= 3'b101;
 
 	   3'b101: state <= 3'b000;
+
+	   default: state <= 3'b000;
 
          endcase
       end

@@ -14,6 +14,7 @@ module slave_spiTop (
 
   reg [3:0]	state;
   reg [7:0]	word;
+  reg [7:0]	word_in;
   reg [3:0]	word_cnt;
   reg [7:0]	command;
   reg 		read;
@@ -58,6 +59,7 @@ module slave_spiTop (
 	   read       <=  1'b0;
 	   write      <=  1'b0;
 	   word_cnt   <=  4'b1000;
+	   word_in     <=  8'h00;
 	   size_write <=  8'h0;
 	end
 	else  	if( ss_i)
@@ -73,6 +75,7 @@ module slave_spiTop (
 	   read     <=  1'b0;
 	   write    <=  1'b0;
 	   word_cnt <=  4'b1000;
+	   word_in     <=  8'h00;
 	   size_write <=  8'h0;
 	end
 	else
@@ -177,7 +180,7 @@ module slave_spiTop (
 		    if(ack_m_o && word_done)
 		    begin
 	    		word_cnt <= 4'b1000;
-			word     <= dat_m_o;
+			word_in  <= dat_m_o;
 			cyc_m_i   <= 1'b0;
 			stb_m_i   <= 1'b0;
 			sel_m_i   <= 4'h0;
@@ -221,6 +224,8 @@ module slave_spiTop (
 			if (& size_write)state    <= 4'b0000;
 		    end
 
+		default:state    <= 4'b0000;
+
 	    endcase
 	end
 
@@ -229,20 +234,21 @@ module slave_spiTop (
 	begin
 	    word  <= 8'h0;
 	end
-	else
+	else begin
 	    if(read && ~word_done)
 	    begin
 	    	word  <= {word[6:0],mosi_i};
 		word_cnt <= word_cnt - 1'b1;
-	    end
+	    end 
 
-  always @(posedge sck_i)
-	    if(write && ~word_done)
+	    else if(write && ~word_done)
 	    begin
+		if(~word_cnt[3]) begin word <= word_in; end
 	    	miso_o  <= word[7];
 		word  <= {word[6:0] , 1'b0};
 		word_cnt <= word_cnt - 1'b1;
 	    end
+	end
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -251,18 +257,15 @@ module slave_spiTop (
 //
 ////////////////////////////////////////////////////////////////////////
 
-   ram_wb_b3 #(
-   //wb_bfm_memory #(.DEBUG (0),
-	        .mem_size_bytes (2**MEM_SIZE_BITS*(wb_dw/8)),
-	        .mem_adr_width (MEM_SIZE_BITS),
-		.aw (32),
+   wb_memory #(
+		.aw (24),
 		.dw (8))
   flash
      (
       //Wishbone Master interface
       .wb_clk_i (clk_i),
       .wb_rst_i (rst_i),
-      .wb_adr_i	({6'b000000,adr_m_i,2'b00} & (2**MEM_SIZE_BITS-1)),
+      .wb_adr_i	(adr_m_i),
       .wb_dat_i	(dat_m_i),
       .wb_sel_i	(sel_m_i),
       .wb_we_i	(we_m_i ),
