@@ -1,9 +1,9 @@
 CAPI=1
 [main]
-description = "OpenCores SPI Core"
+description = "WB FIFO Core"
 depend = fifo4
 
 [verilog]
 src_files =
- simple_spi_top.v
+ wb_fifo_top.v
 

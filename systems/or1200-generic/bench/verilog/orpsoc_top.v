@@ -24,6 +24,17 @@ module orpsoc_top#(
    input           tck_pad_i,
    input           tdi_pad_i
 `endif
+
+`ifdef FIFO_0
+,  input      [31:0]     fifo0_s2m_dat, 
+  input		         fifo0_s2m_we, 
+  output	         fifo0_s2m_empty, 
+  output	         fifo0_s2m_full, 
+  output      [31:0]     fifo0_m2s_dat, 
+  output                 fifo0_m2s_re, 
+  output	         fifo0_m2s_empty, 
+  output	         fifo0_m2s_full
+`endif
 );
 
    localparam wb_dw = 32;
@@ -639,8 +650,7 @@ wire 		spi_miso_i; //data slave -> master
 //
 assign  wb8_s2m_spi_err = 0;
 assign  wb8_s2m_spi_rty = 0;
-//assign  spi_hold_n_o = 1; ver se funcionar assim
-//assign  spi_w_n_o = 1;
+
 
 simple_spi spi_master(
 	// Wishbone slave interface
@@ -695,6 +705,11 @@ wb_data_resize wb_data_resize_spi (
 `endif //!SPI
 
 `ifdef FLASH_SPI
+////////////////////////////////////////////////////////////////////////
+//
+// FLASH SPI 
+//
+////////////////////////////////////////////////////////////////////////
 
   wire 		flash_miso;
 
@@ -707,6 +722,38 @@ slave_spiTop flash_spi(
 	.miso_o		( flash_miso  ));      // MasterIn SlaveOut
 
        assign spi_miso_i = spi_ss_o ? 1'bz : flash_miso;
+`endif
+
+`ifdef FIFO_0
+////////////////////////////////////////////////////////////////////////
+//
+// interface FIFO
+//
+////////////////////////////////////////////////////////////////////////
+
+wb_fifo fifo0(
+  // 8bit WISHBONE bus slave interface
+  .clk_i    		(  wb_clk ),        // clock
+  .rst_i    		(  wb_rst ),        // reset (synchronous active high)
+  .cyc_i    		( wb_m2s_fifo0_cyc  ),        // cycle
+  .stb_i    		( wb_m2s_fifo0_stb  ),        // strobe
+  .adr_i    		( wb_m2s_fifo0_adr[2:0]  ),   // address
+  .we_i    		( wb_m2s_fifo0_we   ),        // write enable
+  .dat_i    		( wb_m2s_fifo0_dat  ),        // data input
+  .dat_o    		( wb_s2m_fifo0_dat  ),        // data output
+  .ack_o    		( wb_s2m_fifo0_ack  ),        // normal bus termination
+  .inta_o    		(  ),       // interrupt output
+
+  //interface
+  .fifo_s2m_dat_i    	( fifo0_s2m_dat    ), 
+  .fifo_s2m_we    	( fifo0_s2m_we     ), 
+  .fifo_s2m_empty    	( fifo0_s2m_empty  ), 
+  .fifo_s2m_full    	( fifo0_s2m_full   ), 
+  .fifo_m2s_dat_o    	( fifo0_m2s_dat    ), 
+  .fifo_m2s_re     	( fifo0_m2s_re     ), 
+  .fifo_m2s_empty    	( fifo0_m2s_empty  ), 
+  .fifo_m2s_full     	( fifo0_m2s_full   )); 
+
 `endif
 
 

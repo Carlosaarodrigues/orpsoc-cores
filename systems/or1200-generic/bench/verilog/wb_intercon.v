@@ -85,6 +85,7 @@ module wb_intercon
     input         wb_i2c_ack_i,
     input         wb_i2c_err_i,
     input         wb_i2c_rty_i,
+
     output [31:0] wb_spi_adr_o,
     output [31:0] wb_spi_dat_o,
     output  [3:0] wb_spi_sel_o,
@@ -96,7 +97,19 @@ module wb_intercon
     input  [31:0] wb_spi_dat_i,
     input         wb_spi_ack_i,
     input         wb_spi_err_i,
-    input         wb_spi_rty_i);
+    input         wb_spi_rty_i,
+    output [31:0] wb_fifo0_adr_o,
+    output [31:0] wb_fifo0_dat_o,
+    output  [3:0] wb_fifo0_sel_o,
+    output        wb_fifo0_we_o,
+    output        wb_fifo0_cyc_o,   
+    output        wb_fifo0_stb_o,
+    output  [2:0] wb_fifo0_cti_o,
+    output  [1:0] wb_fifo0_bte_o,
+    input  [31:0] wb_fifo0_dat_i,
+    input         wb_fifo0_ack_i,
+    input         wb_fifo0_err_i,
+    input         wb_fifo0_rty_i);
 
 wire [31:0] wb_m2s_or1200_d_mem_adr;
 wire [31:0] wb_m2s_or1200_d_mem_dat;
@@ -125,9 +138,9 @@ wire        wb_s2m_or1200_i_mem_rty;
 
 
 wb_mux
-  #(.num_slaves (5),
-    .MATCH_ADDR ({32'h00000000, 32'h90000000, 32'h91000000, 32'ha0000000, 32'hb0000000}),
-    .MATCH_MASK ({32'hff800000, 32'hfffffff8, 32'hfffffffe, 32'hfffffff8, 32'hfffffff8}))
+  #(.num_slaves (6),
+    .MATCH_ADDR ({32'h00000000, 32'h90000000, 32'h91000000, 32'ha0000000, 32'hb0000000,32'hc0000000}),
+    .MATCH_MASK ({32'hff800000, 32'hfffffff8, 32'hfffffffe, 32'hfffffff8, 32'hfffffff8,32'hfffffff8}))
  wb_mux_or1200_d
    (.wb_clk_i  (wb_clk_i),
     .wb_rst_i  (wb_rst_i),
@@ -143,18 +156,18 @@ wb_mux
     .wbm_ack_o (wb_or1200_d_ack_o),
     .wbm_err_o (wb_or1200_d_err_o),
     .wbm_rty_o (wb_or1200_d_rty_o),
-    .wbs_adr_o ({wb_m2s_or1200_d_mem_adr, wb_uart_adr_o, wb_gpio_adr_o, wb_i2c_adr_o, wb_spi_adr_o  }),
-    .wbs_dat_o ({wb_m2s_or1200_d_mem_dat, wb_uart_dat_o, wb_gpio_dat_o, wb_i2c_dat_o, wb_spi_dat_o  }),
-    .wbs_sel_o ({wb_m2s_or1200_d_mem_sel, wb_uart_sel_o, wb_gpio_sel_o, wb_i2c_sel_o, wb_spi_sel_o  }),
-    .wbs_we_o  ({wb_m2s_or1200_d_mem_we,  wb_uart_we_o,	 wb_gpio_we_o,  wb_i2c_we_o,  wb_spi_we_o   }),
-    .wbs_cyc_o ({wb_m2s_or1200_d_mem_cyc, wb_uart_cyc_o, wb_gpio_cyc_o, wb_i2c_cyc_o, wb_spi_cyc_o  }),
-    .wbs_stb_o ({wb_m2s_or1200_d_mem_stb, wb_uart_stb_o, wb_gpio_stb_o, wb_i2c_stb_o, wb_spi_stb_o  }),
-    .wbs_cti_o ({wb_m2s_or1200_d_mem_cti, wb_uart_cti_o, wb_gpio_cti_o, wb_i2c_cti_o, wb_spi_cti_o  }),
-    .wbs_bte_o ({wb_m2s_or1200_d_mem_bte, wb_uart_bte_o, wb_gpio_bte_o, wb_i2c_bte_o, wb_spi_bte_o  }),
-    .wbs_dat_i ({wb_s2m_or1200_d_mem_dat, wb_uart_dat_i, wb_gpio_dat_i, wb_i2c_dat_i, wb_spi_dat_i  }),
-    .wbs_ack_i ({wb_s2m_or1200_d_mem_ack, wb_uart_ack_i, wb_gpio_ack_i, wb_i2c_ack_i, wb_spi_ack_i  }),
-    .wbs_err_i ({wb_s2m_or1200_d_mem_err, wb_uart_err_i, wb_gpio_err_i, wb_i2c_err_i, wb_spi_err_i  }),
-    .wbs_rty_i ({wb_s2m_or1200_d_mem_rty, wb_uart_rty_i, wb_gpio_rty_i, wb_i2c_rty_i, wb_spi_rty_i  }));
+    .wbs_adr_o ({wb_m2s_or1200_d_mem_adr, wb_uart_adr_o, wb_gpio_adr_o, wb_i2c_adr_o, wb_spi_adr_o, wb_fifo0_adr_o }),
+    .wbs_dat_o ({wb_m2s_or1200_d_mem_dat, wb_uart_dat_o, wb_gpio_dat_o, wb_i2c_dat_o, wb_spi_dat_o, wb_fifo0_dat_o }),
+    .wbs_sel_o ({wb_m2s_or1200_d_mem_sel, wb_uart_sel_o, wb_gpio_sel_o, wb_i2c_sel_o, wb_spi_sel_o, wb_fifo0_sel_o }),
+    .wbs_we_o  ({wb_m2s_or1200_d_mem_we,  wb_uart_we_o,	 wb_gpio_we_o,  wb_i2c_we_o,  wb_spi_we_o,  wb_fifo0_we_o }),
+    .wbs_cyc_o ({wb_m2s_or1200_d_mem_cyc, wb_uart_cyc_o, wb_gpio_cyc_o, wb_i2c_cyc_o, wb_spi_cyc_o, wb_fifo0_cyc_o }),
+    .wbs_stb_o ({wb_m2s_or1200_d_mem_stb, wb_uart_stb_o, wb_gpio_stb_o, wb_i2c_stb_o, wb_spi_stb_o, wb_fifo0_stb_o }),
+    .wbs_cti_o ({wb_m2s_or1200_d_mem_cti, wb_uart_cti_o, wb_gpio_cti_o, wb_i2c_cti_o, wb_spi_cti_o, wb_fifo0_cti_o }),
+    .wbs_bte_o ({wb_m2s_or1200_d_mem_bte, wb_uart_bte_o, wb_gpio_bte_o, wb_i2c_bte_o, wb_spi_bte_o, wb_fifo0_bte_o }),
+    .wbs_dat_i ({wb_s2m_or1200_d_mem_dat, wb_uart_dat_i, wb_gpio_dat_i, wb_i2c_dat_i, wb_spi_dat_i, wb_fifo0_dat_i }),
+    .wbs_ack_i ({wb_s2m_or1200_d_mem_ack, wb_uart_ack_i, wb_gpio_ack_i, wb_i2c_ack_i, wb_spi_ack_i, wb_fifo0_ack_i }),
+    .wbs_err_i ({wb_s2m_or1200_d_mem_err, wb_uart_err_i, wb_gpio_err_i, wb_i2c_err_i, wb_spi_err_i, wb_fifo0_err_i }),
+    .wbs_rty_i ({wb_s2m_or1200_d_mem_rty, wb_uart_rty_i, wb_gpio_rty_i, wb_i2c_rty_i, wb_spi_rty_i, wb_fifo0_rty_i }));
 
 
 

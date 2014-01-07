@@ -48,6 +48,7 @@
 `ifdef SPI
 `define FLASH_SPI
 `endif
+`define FIFO_0
 
 
 /* 

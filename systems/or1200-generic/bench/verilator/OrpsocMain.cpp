@@ -112,6 +112,19 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > scl;
 #endif
 */
+
+
+#ifdef FIFO_0
+	sc_signal < unsigned int > fifo0_send_dat;
+	sc_signal < bool > fifo0_send_we;
+	sc_signal < bool > fifo0_send_empty;
+	sc_signal < bool > fifo0_send_full;
+	sc_signal < unsigned int > fifo0_receive_dat;
+	sc_signal < bool > fifo0_receive_re;
+	sc_signal < bool > fifo0_receive_empty;
+	sc_signal < bool > fifo0_receive_full;
+#endif
+
 #ifdef GPIO
 	sc_signal < unsigned int > gpio;	// GPIO interface
 #endif 
@@ -345,6 +358,20 @@ int sc_main(int argc, char *argv[])
 	orpsoc->i2c_scl_io(scl);
 #endif
 */
+
+
+
+#ifdef FIFO_0
+	orpsoc->fifo0_s2m_dat	(fifo0_send_dat);
+	orpsoc->fifo0_s2m_we	(fifo0_send_we);
+	orpsoc->fifo0_s2m_empty	(fifo0_send_empty);
+	orpsoc->fifo0_s2m_full	(fifo0_send_full);
+	orpsoc->fifo0_m2s_dat	(fifo0_receive_dat);
+	orpsoc->fifo0_m2s_re	(fifo0_receive_re);
+	orpsoc->fifo0_m2s_empty	(fifo0_receive_empty);
+	orpsoc->fifo0_m2s_full	(fifo0_receive_full);
+#endif
+
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
 	reset->rst(rst);

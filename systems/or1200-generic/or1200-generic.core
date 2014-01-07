@@ -16,6 +16,7 @@ depend =
  memory_i2c
  simple_spi
  memory_spi
+ wb_fifo
 
 simulators = verilator icarus modelsim
 
