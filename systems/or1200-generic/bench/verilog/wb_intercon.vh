@@ -106,6 +106,18 @@ wire [31:0] wb_s2m_fifo0_dat;
 wire        wb_s2m_fifo0_ack;
 wire        wb_s2m_fifo0_err;
 wire        wb_s2m_fifo0_rty;
+wire [31:0] wb_m2s_fifo1_adr;
+wire [31:0] wb_m2s_fifo1_dat;
+wire  [3:0] wb_m2s_fifo1_sel;
+wire        wb_m2s_fifo1_we ;
+wire        wb_m2s_fifo1_cyc;   
+wire        wb_m2s_fifo1_stb;
+wire  [2:0] wb_m2s_fifo1_cti;
+wire  [1:0] wb_m2s_fifo1_bte;
+wire [31:0] wb_s2m_fifo1_dat;
+wire        wb_s2m_fifo1_ack;
+wire        wb_s2m_fifo1_err;
+wire        wb_s2m_fifo1_rty;
 
 
 wb_intercon wb_intercon0
@@ -218,7 +230,19 @@ wb_intercon wb_intercon0
     .wb_fifo0_dat_i    (wb_s2m_fifo0_dat),      
     .wb_fifo0_ack_i    (wb_s2m_fifo0_ack),
     .wb_fifo0_err_i    (wb_s2m_fifo0_err),
-    .wb_fifo0_rty_i    (wb_s2m_fifo0_rty));
+    .wb_fifo0_rty_i    (wb_s2m_fifo0_rty),
+    .wb_fifo1_adr_o    (wb_m2s_fifo1_adr),
+    .wb_fifo1_dat_o    (wb_m2s_fifo1_dat), 
+    .wb_fifo1_sel_o    (wb_m2s_fifo1_sel),
+    .wb_fifo1_we_o     (wb_m2s_fifo1_we ),  
+    .wb_fifo1_cyc_o    (wb_m2s_fifo1_cyc),       
+    .wb_fifo1_stb_o    (wb_m2s_fifo1_stb),      
+    .wb_fifo1_cti_o    (wb_m2s_fifo1_cti),       
+    .wb_fifo1_bte_o    (wb_m2s_fifo1_bte), 
+    .wb_fifo1_dat_i    (wb_s2m_fifo1_dat),      
+    .wb_fifo1_ack_i    (wb_s2m_fifo1_ack),
+    .wb_fifo1_err_i    (wb_s2m_fifo1_err),
+    .wb_fifo1_rty_i    (wb_s2m_fifo1_rty));
 
 
 

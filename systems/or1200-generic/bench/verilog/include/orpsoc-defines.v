@@ -49,7 +49,7 @@
 `define FLASH_SPI
 `endif
 `define FIFO_0
-
+`define FIFO_1
 
 /* 
 `define SPI0_SLAVE_SELECTS

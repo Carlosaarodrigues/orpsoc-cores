@@ -26,20 +26,31 @@ module orpsoc_top#(
 `endif
 
 `ifdef FIFO_0
-,  input      [31:0]     fifo0_s2m_dat, 
+,  input [31:0] 	 fifo0_s2m_dat, 
   input		         fifo0_s2m_we, 
   output	         fifo0_s2m_empty, 
   output	         fifo0_s2m_full, 
-  output      [31:0]     fifo0_m2s_dat, 
-  output                 fifo0_m2s_re, 
+  output [31:0] 	 fifo0_m2s_dat, 
+  input                  fifo0_m2s_re, 
   output	         fifo0_m2s_empty, 
   output	         fifo0_m2s_full
+`endif
+
+`ifdef FIFO_1
+,  input [31:0]  	 fifo1_s2m_dat, 
+  input		         fifo1_s2m_we, 
+  output	         fifo1_s2m_empty, 
+  output	         fifo1_s2m_full, 
+  output [31:0]  	 fifo1_m2s_dat, 
+  input                  fifo1_m2s_re, 
+  output	         fifo1_m2s_empty, 
+  output	         fifo1_m2s_full
 `endif
 );
 
    localparam wb_dw = 32;
-
    localparam MEM_SIZE_BITS = 23;
+
    
    ////////////////////////////////////////////////////////////////////////
    //
@@ -731,7 +742,7 @@ slave_spiTop flash_spi(
 //
 ////////////////////////////////////////////////////////////////////////
 
-wb_fifo fifo0(
+wb_fifo#(32) fifo0(
   // 8bit WISHBONE bus slave interface
   .clk_i    		(  wb_clk ),        // clock
   .rst_i    		(  wb_rst ),        // reset (synchronous active high)
@@ -753,6 +764,38 @@ wb_fifo fifo0(
   .fifo_m2s_re     	( fifo0_m2s_re     ), 
   .fifo_m2s_empty    	( fifo0_m2s_empty  ), 
   .fifo_m2s_full     	( fifo0_m2s_full   )); 
+
+`endif
+
+`ifdef FIFO_1
+////////////////////////////////////////////////////////////////////////
+//
+// interface FIFO
+//
+////////////////////////////////////////////////////////////////////////
+
+wb_fifo#(32) fifo1(
+  // 8bit WISHBONE bus slave interface
+  .clk_i    		(  wb_clk ),        // clock
+  .rst_i    		(  wb_rst ),        // reset (synchronous active high)
+  .cyc_i    		( wb_m2s_fifo1_cyc  ),        // cycle
+  .stb_i    		( wb_m2s_fifo1_stb  ),        // strobe
+  .adr_i    		( wb_m2s_fifo1_adr[2:0]  ),   // address
+  .we_i    		( wb_m2s_fifo1_we   ),        // write enable
+  .dat_i    		( wb_m2s_fifo1_dat  ),        // data input
+  .dat_o    		( wb_s2m_fifo1_dat  ),        // data output
+  .ack_o    		( wb_s2m_fifo1_ack  ),        // normal bus termination
+  .inta_o    		(  ),       // interrupt output
+
+  //interface
+  .fifo_s2m_dat_i    	( fifo1_s2m_dat    ), 
+  .fifo_s2m_we    	( fifo1_s2m_we     ), 
+  .fifo_s2m_empty    	( fifo1_s2m_empty  ), 
+  .fifo_s2m_full    	( fifo1_s2m_full   ), 
+  .fifo_m2s_dat_o    	( fifo1_m2s_dat    ), 
+  .fifo_m2s_re     	( fifo1_m2s_re     ), 
+  .fifo_m2s_empty    	( fifo1_m2s_empty  ), 
+  .fifo_m2s_full     	( fifo1_m2s_full   )); 
 
 `endif
 

@@ -125,6 +125,17 @@ int sc_main(int argc, char *argv[])
 	sc_signal < bool > fifo0_receive_full;
 #endif
 
+#ifdef FIFO_1
+	sc_signal < unsigned int > fifo1_send_dat;
+	sc_signal < bool > fifo1_send_we;
+	sc_signal < bool > fifo1_send_empty;
+	sc_signal < bool > fifo1_send_full;
+	sc_signal < unsigned int > fifo1_receive_dat;
+	sc_signal < bool > fifo1_receive_re;
+	sc_signal < bool > fifo1_receive_empty;
+	sc_signal < bool > fifo1_receive_full;
+#endif
+
 #ifdef GPIO
 	sc_signal < unsigned int > gpio;	// GPIO interface
 #endif 
@@ -372,6 +383,17 @@ int sc_main(int argc, char *argv[])
 	orpsoc->fifo0_m2s_full	(fifo0_receive_full);
 #endif
 
+#ifdef FIFO_1
+	orpsoc->fifo1_s2m_dat	(fifo1_send_dat);
+	orpsoc->fifo1_s2m_we	(fifo1_send_we);
+	orpsoc->fifo1_s2m_empty	(fifo1_send_empty);
+	orpsoc->fifo1_s2m_full	(fifo1_send_full);
+	orpsoc->fifo1_m2s_dat	(fifo1_receive_dat);
+	orpsoc->fifo1_m2s_re	(fifo1_receive_re);
+	orpsoc->fifo1_m2s_empty	(fifo1_receive_empty);
+	orpsoc->fifo1_m2s_full	(fifo1_receive_full);
+#endif
+
 	// Connect up the SystemC  modules
 	reset->clk(clk);	// Reset
 	reset->rst(rst);
@@ -497,39 +519,56 @@ int sc_main(int argc, char *argv[])
 						verilatorVCDFile->close();
 						break;
 					}
+#ifdef FIFO_0
+					// read fifo0 and write fifo0
+					if(!fifo0_receive_empty){
+						fifo0_receive_re = 1;
+						fifo0_send_dat = fifo0_receive_dat;
+						fifo0_send_we = 1;
 
-					verilatorVCDFile->dump(sc_time_stamp().
-							       to_double());
+
+					}else{
+						fifo0_receive_re = 0;
+						fifo0_send_we = 0;
+					}
+#endif
+
+
+#ifdef FIFO_1
+					// read fifo1 and write fifo1
+					if(!fifo1_receive_empty){
+
+						fifo1_receive_re = 1;
+						fifo1_send_dat = fifo1_receive_dat;
+						fifo1_send_we = 1;
+
+
+					}else{
+						fifo1_receive_re = 0;
+						fifo1_send_we = 0;
+					}
+#endif
+					verilatorVCDFile->dump(sc_time_stamp().to_double());
 
 					if (dump_stop_set) {
-						if (sc_time_stamp() >=
-						    dump_stop) {
+						if (sc_time_stamp() >= dump_stop) {
 							// Close dump file
-							verilatorVCDFile->close
-								();
+							verilatorVCDFile->close	();
 							// Now continue on again until the end
 							if (!finish_time_set)
 								sc_start();
 							else {
 								// Determine how long we should run for
 								sc_time
-								    sim_time_remaining
-								    =
-								    finish_time
-								    -
-								    sc_time_stamp
-								    ();
+								    sim_time_remaining = finish_time - sc_time_stamp();
 								sc_start((double)(sim_time_remaining.to_double()), TIMESCALE_UNIT);
 								// Officially stop the sim
 								sc_stop();
 								// Print performance summary
 #ifdef MONITOR
-								monitor->
-								    perfSummary
-								    ();
+								monitor->perfSummary();
 								// Do memdump if enabled
-								monitor->memdump
-								    ();
+								monitor->memdump();
 #endif
 							}
 							break;
