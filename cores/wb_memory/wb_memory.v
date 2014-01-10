@@ -168,33 +168,36 @@ module wb_memory
 //synthesis translate_on
 
    // Function to access RAM (for use by Verilator).
-   function [dw-1:0] get_mem32;
+   function [31:0] get_mem32;
       // verilator public
-      input [aw-1:0] 		addr;
-      get_mem32 = mem[addr];
+      input [31:0] 		addr;
+      get_mem32[31:24] = mem[{addr[aw-2:0],2'b00}];
+      get_mem32[23:16] = mem[{addr[aw-2:0],2'b01}];
+      get_mem32[15: 8] = mem[{addr[aw-2:0],2'b10}];
+      get_mem32[ 7: 0] = mem[{addr[aw-2:0],2'b11}];
    endfunction // get_mem32   
 
-/*   // Function to access RAM (for use by Verilator).
+   // Function to access RAM (for use by Verilator).
    function [7:0] get_mem8;
       // verilator public
-      input [aw-1:0] 		addr;
-            reg [dw-1:0] 		temp_word;
+      input [31:0] 		addr;
       begin
-	 temp_word = mem[{addr[aw-1:2],2'd0}];
 	 // Big endian mapping.
-	 get_mem8 = (addr[1:0]==2'b00) ? temp_word[31:24] :
-		    (addr[1:0]==2'b01) ? temp_word[23:16] :
-		    (addr[1:0]==2'b10) ? temp_word[15:8] : temp_word[7:0];
-	 end
+	 get_mem8 = mem[addr];
+      end
    endfunction // get_mem8   
-*/
+
    // Function to write RAM (for use by Verilator).
-   function [dw-1:0] set_mem32;
+   function [31:0] set_mem32;
       // verilator public
-      input [aw-1:0] 		addr;
-      input [dw-1:0] 		data;
+      input [31:0] 		addr;
+      input [31:0] 		data;
       begin
-         mem[addr] = data;
+  	
+         mem[{addr[aw-2:0],2'b00}]   = data[31:24];
+         mem[{addr[aw-2:0],2'b01}] = data[23:16];
+         mem[{addr[aw-2:0],2'b10}] = data[15: 8];
+         mem[{addr[aw-2:0],2'b11}] = data[ 7: 0];
          set_mem32 = data; // For avoiding ModelSim warning
       end
    endfunction // set_mem32   

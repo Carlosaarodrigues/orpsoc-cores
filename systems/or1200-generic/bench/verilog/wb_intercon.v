@@ -186,7 +186,7 @@ wb_mux
 wb_mux
   #(.num_slaves (2),
     .MATCH_ADDR ({32'h00000000, 32'hf0000100}),
-    .MATCH_MASK ({32'hfe000000, 32'hffffffc0}))
+    .MATCH_MASK ({32'hfe000000, 32'hffffff00}))
  wb_mux_or1200_i
    (.wb_clk_i  (wb_clk_i),
     .wb_rst_i  (wb_rst_i),

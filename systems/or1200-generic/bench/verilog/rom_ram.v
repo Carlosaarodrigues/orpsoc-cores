@@ -55,36 +55,11 @@ module rom
      else
        case (adr)
 	 // Zero r0 and jump to 0x00000100
-0 : wb_dat_o <=  32'h18000000;
-1 : wb_dat_o <=  32'h18200000;
-2 : wb_dat_o <=  32'h1880b000;
-3 : wb_dat_o <=  32'ha84000ff;
-4 : wb_dat_o <=  32'hd8040004;
-5 : wb_dat_o <=  32'hd8041000;
-6 : wb_dat_o <=  32'hd8041003;
-7 : wb_dat_o <=  32'ha8c00001;
-8 : wb_dat_o <=  32'hd8043004;
-9 : wb_dat_o <=  32'ha8600003;
-10 : wb_dat_o <=  32'hd8041802;
-11 : wb_dat_o <=  32'ha8600000;
-12 : wb_dat_o <=  32'hd8041802;
-13 : wb_dat_o <=  32'ha8600000;
-14 : wb_dat_o <=  32'hd8041802;
-15 : wb_dat_o <=  32'ha8600000;
-16 : wb_dat_o <=  32'hd8041802;
-17 : wb_dat_o <=  32'h18c00000;
-18 : wb_dat_o <=  32'h18e0ffff;
-19 : wb_dat_o <=  32'h8c640002;
-20 : wb_dat_o <=  32'he1013000;
-21 : wb_dat_o <=  32'hd8081800;
-22 : wb_dat_o <=  32'h9cc60001;
-23 : wb_dat_o <=  32'hbc060004;
-24 : wb_dat_o <=  32'he4063800;
-25 : wb_dat_o <=  32'h0ffffffa;
-26 : wb_dat_o <=  32'h15000000;
-27 : wb_dat_o <=  32'ha8210100;
-28 : wb_dat_o <=  32'h44000800;
-29 : wb_dat_o <=  32'hd8040004;
+	 0 : wb_dat_o <= 32'h18000000;
+	 1 : wb_dat_o <= 32'hA8200000;
+	 2 : wb_dat_o <= 32'hA8C00100;
+	 3 : wb_dat_o <= 32'h44003000;
+	 4 : wb_dat_o <= 32'h15000000;
 	 
 	 default:
 	   wb_dat_o <= 32'h00000000;

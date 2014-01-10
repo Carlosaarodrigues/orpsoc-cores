@@ -183,7 +183,7 @@ uint32_t OrpsocAccess::get_mem32(uint32_t addr)
 //! Access a byte from the Wishbone SRAM memory
 
 //! @return  The value of the memory byte at addr
-
+/*
 uint8_t OrpsocAccess::get_mem8(uint32_t addr)
 {
 
@@ -201,7 +201,7 @@ uint8_t OrpsocAccess::get_mem8(uint32_t addr)
 		word = cached_word;
 
 	switch (sel) {
-		/* Big endian word expected */
+		/* Big endian word expected 
 	case 0:
 		return ((word >> 24) & 0xff);
 		break;
@@ -219,7 +219,7 @@ uint8_t OrpsocAccess::get_mem8(uint32_t addr)
 	}
 
 }				// get_mem8 ()
-
+*/
 //! Write value to the Wishbone SRAM memory
 
 void OrpsocAccess::set_mem32(uint32_t addr, uint32_t data)
