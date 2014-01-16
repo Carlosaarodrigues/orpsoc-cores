@@ -1,3 +1,24 @@
+/////////////////////////////////////////////////////////////////////////////
+////                                                                     ////        
+//// Memory with interface I2C				                 ////
+////                                                                     ////
+////                                                                     ////
+//// Author(s):  Carlos Rodrigues		        		 ////
+////	   	 carlosaarodrigues@inesc-id.pt                           ////
+////                                                                     ////
+//// Downloaded from:     					         ////
+////  https://github.com/jjts/orpsoc-cores/tree/master/cores/memory_i2c  ////
+/////////////////////////////////////////////////////////////////////////////
+////                                                                     ////
+//// Copyright (C) 2013 Carlos Rodigues                        		 ////
+////                    carlosaarodrigues@inesc-id.pt                    ////
+////                                                                     ////
+////  This Source Code Form is subject to the terms of the        	 ////
+////  Open Hardware Description License, v. 1.0. If a copy        	 ////
+////  of the OHDL was not distributed with this file, You        	 ////
+////  can obtain one at http://juliusbaxter.net/ohdl/ohdl.txt            ////
+////                                                                     ////
+/////////////////////////////////////////////////////////////////////////////
 
 
 module memory_i2c (

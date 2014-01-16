@@ -5,6 +5,8 @@
 ////  Author: Richard Herveille                                  ////
 ////          richard@asics.ws                                   ////
 ////          www.asics.ws                                       ////
+////          Carlos Rodrigues					 ////
+////	      carlosaarodrigues@inesc-id.pt                      ////
 ////                                                             ////
 /////////////////////////////////////////////////////////////////////
 ////                                                             ////

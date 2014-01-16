@@ -5,7 +5,9 @@
 ////                                                             ////
 ////  Author: Richard Herveille                                  ////
 ////          richard@asics.ws                                   ////
-////          www.asics.ws                                       ////
+////          www.asics.ws					 ////	
+////          Carlos Rodrigues					 ////
+////	      carlosaarodrigues@inesc-id.pt                      ////
 ////                                                             ////
 ////  Downloaded from: http://www.opencores.org/projects/i2c/    ////
 ////                                                             ////
