@@ -33,8 +33,8 @@
 
 #include "Vorpsoc_top.h"
 #include "Vorpsoc_top_orpsoc_top.h"
-#include "Vorpsoc_top_or1200_top__Bf0000100.h"
-#include "Vorpsoc_top_or1200_cpu__Bf0000100.h"
+#include "Vorpsoc_top_or1200_top__Bf0000200.h"
+#include "Vorpsoc_top_or1200_cpu__Bf0000200.h"
 #include "Vorpsoc_top_or1200_ctrl.h"
 #include "Vorpsoc_top_or1200_except.h"
 #include "Vorpsoc_top_or1200_sprs.h"

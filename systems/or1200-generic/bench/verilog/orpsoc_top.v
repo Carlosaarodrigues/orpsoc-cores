@@ -2,7 +2,7 @@
 
 module orpsoc_top#(
 	parameter	uart0_aw = 3,
-	parameter	rom0_aw = 6,
+	parameter	rom0_aw = 7, //((size_addr)-2) 
         parameter       i2c_wb_adr_width = 3,
 	parameter       HV1_SADR = 8'h45
 
@@ -144,7 +144,7 @@ tap_top jtag_tap0 (
    assign	or1k_rst= wb_rst | or1k_dbg_rst;
 
 
-   or1200_top #(.boot_adr(32'hf0000100)) or1200_top0
+   or1200_top #(.boot_adr(32'hf0000200)) or1200_top0
        (
 	// Instruction bus, clocks, reset
 	.iwb_clk_i			(wb_clk_i),
@@ -215,7 +215,7 @@ tap_top jtag_tap0 (
 
    ////////////////////////////////////////////////////////////////////////
    //
-   // BOOTROM
+   // BOOTROM with 0x1FF words
    // 
    ////////////////////////////////////////////////////////////////////////
 assign	wb_s2m_rom_err = 1'b0;
