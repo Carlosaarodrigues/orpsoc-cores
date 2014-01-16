@@ -23,7 +23,8 @@ simulators = verilator icarus modelsim
 [verilog]
 src_files =
  bench/verilog/wb_intercon.v
- bench/verilog/rom.v
+ bench/verilog/rom_load_program.v
+ bench/verilog/rom_jump_ram.v
  bench/verilog/orpsoc_top.v
 tb_private_src_files = 
  bench/verilog/orpsoc_tb.v

@@ -221,8 +221,8 @@ tap_top jtag_tap0 (
 assign	wb_s2m_rom_err = 1'b0;
 assign	wb_s2m_rom_rty = 1'b0;
 
-`ifdef BOOTROM
-rom #(.addr_width(rom0_aw))
+`ifdef BOOTROM_LOAD
+rom_load_program #(.addr_width(rom0_aw))
     rom (
 	.wb_clk		(wb_clk),
 	.wb_rst		(wb_rst),
@@ -753,7 +753,6 @@ wb_fifo#(32) fifo0(
   .dat_i    		( wb_m2s_fifo0_dat  ),        // data input
   .dat_o    		( wb_s2m_fifo0_dat  ),        // data output
   .ack_o    		( wb_s2m_fifo0_ack  ),        // normal bus termination
-  .inta_o    		(  ),       // interrupt output
 
   //interface
   .fifo_s2m_dat_i    	( fifo0_s2m_dat    ), 
@@ -785,7 +784,6 @@ wb_fifo#(32) fifo1(
   .dat_i    		( wb_m2s_fifo1_dat  ),        // data input
   .dat_o    		( wb_s2m_fifo1_dat  ),        // data output
   .ack_o    		( wb_s2m_fifo1_ack  ),        // normal bus termination
-  .inta_o    		(  ),       // interrupt output
 
   //interface
   .fifo_s2m_dat_i    	( fifo1_s2m_dat    ), 

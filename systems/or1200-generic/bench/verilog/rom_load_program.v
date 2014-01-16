@@ -33,7 +33,7 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
-module rom
+module rom_load_program
   #(parameter addr_width = 5,
     parameter b3_burst   = 0)
    (
