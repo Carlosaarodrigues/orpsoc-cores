@@ -30,8 +30,13 @@
 #define ORPSOC_ACCESS__H
 
 #include <stdint.h>
-//#define wishbone_ram orpsoc_top->v->wb_bfm_memory0 //program in ram
-#define wishbone_ram orpsoc_top->v->flash_spi->flash //program in flashSPI
+#include "orpsoc-defines.h"
+
+#ifdef BOOTROM_JUMP
+#define wishbone_ram orpsoc_top->v->wb_bfm_memory0 //write program in main memory
+#elif BOOTROM_LOAD
+#define wishbone_ram orpsoc_top->v->flash_spi->flash //write program in flash SPI
+#endif
 
 class Vorpsoc_top;
 class Vorpsoc_top_orpsoc_top;

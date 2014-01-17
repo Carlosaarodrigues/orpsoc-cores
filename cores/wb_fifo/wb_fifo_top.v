@@ -28,7 +28,8 @@ module wb_fifo #(
   parameter dw = 32
 )(
  
-  input        		clk_i,   
+  input        		clk_i,
+  input			rst_i,    
   input        		cyc_i,    
   input        		stb_i,     
   input   [2:0]  	adr_i,       

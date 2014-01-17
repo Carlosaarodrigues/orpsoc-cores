@@ -221,7 +221,9 @@ tap_top jtag_tap0 (
 assign	wb_s2m_rom_err = 1'b0;
 assign	wb_s2m_rom_rty = 1'b0;
 
-`ifdef BOOTROM_LOAD
+
+`ifdef BOOTROM_LOAD  //bootrom load main memory by spi
+
 rom_load_program #(.addr_width(rom0_aw))
     rom (
 	.wb_clk		(wb_clk),
@@ -234,6 +236,22 @@ rom_load_program #(.addr_width(rom0_aw))
 	.wb_dat_o	(wb_s2m_rom_dat),
 	.wb_ack_o	(wb_s2m_rom_ack)
 );
+
+`elsif BOOTROM_JUMP //bootrom jump for main memory
+
+rom_jump_ram #(.addr_width(rom0_aw))
+    rom (
+	.wb_clk		(wb_clk),
+	.wb_rst		(wb_rst),
+	.wb_adr_i	(wb_m2s_rom_adr[(rom0_aw + 2) - 1 : 2]),
+	.wb_cyc_i	(wb_m2s_rom_cyc),
+	.wb_stb_i	(wb_m2s_rom_stb),
+	.wb_cti_i	(wb_m2s_rom_cti),
+	.wb_bte_i	(wb_m2s_rom_bte),
+	.wb_dat_o	(wb_s2m_rom_dat),
+	.wb_ack_o	(wb_s2m_rom_ack)
+);
+
 `else
 assign	wb_s2m_rom_dat_o = 0;
 assign	wb_s2m_rom_ack_o = 0;

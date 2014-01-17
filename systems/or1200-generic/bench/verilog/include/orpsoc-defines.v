@@ -38,7 +38,7 @@
 //`define JTAG_DEBUG
 `define UART0
 `define GPIO
-`define BOOTROM
+`define BOOTROM_LOAD //BOOTROM_LOAD load program of spi or BOOTROM_JUMP jump for main memory
 `define SIM
 `define I2C
 `ifdef I2C
