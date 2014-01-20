@@ -20,4 +20,9 @@ src_files =
 include_files = 
  rtl/verilog/adbg_defines.v
  rtl/verilog/adbg_wb_defines.v
-
+ 
+#[provider]
+#name = opencores
+#repo_name = adv_debug_sys
+#repo_root = trunk/Hardware/adv_dbg_if
+#revision = 69
