@@ -187,10 +187,9 @@ module simple_spi #(
   always @(posedge clk_i)
     if (rst_i)
       ack_o <= 1'b0;
-    else if (we_i)
-      ack_o <= wb_acc & !ack_o & ~|state;
-    else
-      ack_o <= wb_acc & !ack_o & rfre;
+    else 
+      ack_o <= wb_acc & !ack_o;
+
   // decode Serial Peripheral Control Register
   wire       spie = spcr[7];   // Interrupt enable bit
   wire       spe = spcr[6];   // System Enable bit
