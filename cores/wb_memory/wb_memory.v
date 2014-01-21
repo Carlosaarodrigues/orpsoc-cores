@@ -171,10 +171,10 @@ module wb_memory
    function [31:0] get_mem32;
       // verilator public
       input [31:0] 		addr;
-      get_mem32[31:24] = mem[{addr[aw-2:0],2'b00}];
-      get_mem32[23:16] = mem[{addr[aw-2:0],2'b01}];
-      get_mem32[15: 8] = mem[{addr[aw-2:0],2'b10}];
-      get_mem32[ 7: 0] = mem[{addr[aw-2:0],2'b11}];
+      get_mem32[31:24] = mem[{addr[aw-3:0],2'b00}];
+      get_mem32[23:16] = mem[{addr[aw-3:0],2'b01}];
+      get_mem32[15: 8] = mem[{addr[aw-3:0],2'b10}];
+      get_mem32[ 7: 0] = mem[{addr[aw-3:0],2'b11}];
    endfunction // get_mem32   
 
    // Function to access RAM (for use by Verilator).
@@ -194,10 +194,10 @@ module wb_memory
       input [31:0] 		data;
       begin
   	
-         mem[{addr[aw-2:0],2'b00}]   = data[31:24];
-         mem[{addr[aw-2:0],2'b01}] = data[23:16];
-         mem[{addr[aw-2:0],2'b10}] = data[15: 8];
-         mem[{addr[aw-2:0],2'b11}] = data[ 7: 0];
+         mem[{addr[aw-3:0],2'b00}] = data[31:24];
+         mem[{addr[aw-3:0],2'b01}] = data[23:16];
+         mem[{addr[aw-3:0],2'b10}] = data[15: 8];
+         mem[{addr[aw-3:0],2'b11}] = data[ 7: 0];
          set_mem32 = data; // For avoiding ModelSim warning
       end
    endfunction // set_mem32   

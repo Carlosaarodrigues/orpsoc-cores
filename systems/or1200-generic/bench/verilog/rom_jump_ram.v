@@ -55,11 +55,12 @@ module rom_jump_ram
      else
        case (adr)
          // Zero r0 and jump to 0x00000100
-         0 : wb_dat_o <= 32'h18000000;
-         1 : wb_dat_o <= 32'hA8200000;
-         2 : wb_dat_o <= 32'hA8C00100;
-         3 : wb_dat_o <= 32'h44003000;
-         4 : wb_dat_o <= 32'h15000000;
+0 : wb_dat_o <=  32'h18000000;
+1 : wb_dat_o <=  32'h18800000;
+2 : wb_dat_o <=  32'ha8840100;
+3 : wb_dat_o <=  32'hc0000811;
+4 : wb_dat_o <=  32'h44002000;
+5 : wb_dat_o <=  32'h15000000;
         
          default:
          wb_dat_o <= 32'h00000000;

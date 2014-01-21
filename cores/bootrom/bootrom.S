@@ -42,6 +42,7 @@
 #define ERROR_MENSAGE_UART
 #define ERROR_MENSAGE_GPIO
 
+#define RAM_LOAD_BASE 0x00000000
 #ifdef BOOTROM_SPI_FLASH
 	
 	/* Assembly program to go into the boot ROM */
@@ -67,7 +68,6 @@
 #define SPI_SPSS_INIT 0x1	//sleext slave SPI
 #define SPI_SPSR_RX_CHECK 0x01 /* Check bit 0 is cleared, fifo !empty*/
 	
-#define RAM_LOAD_BASE 0x00000000
 #define UART_BASE 0x90000000
 #define GPIO_BASE 0x91000000
 #define RESET_ADDR 0x100
@@ -488,8 +488,9 @@ busy_next:
 #ifdef BOOTROM_GOTO_RESET
 	/* Jump to reset vector in the SDRAM */
 	l.movhi r0, 0
-	l.movhi r4, SDRAM_BASE
+	l.movhi r4, RAM_LOAD_BASE
 	l.ori 	r4, r4, 0x100
+	l.mtspr r0,r1,0x11
 	l.jr 	r4
 	l.nop
 	
@@ -501,7 +502,7 @@ busy_next:
 	of memory and jump there.
 	*/
 	l.movhi r0, 0
-	l.movhi r4, SDRAM_BASE
+	l.movhi r4, RAM_LOAD_BASE
 	l.sw 	0x0(r4), r0
 	l.movhi r5, hi(0x15000001) /* A l.nop 1 so sim exits if this enabled */
 	l.ori 	r5, r5, lo(0x15000001)

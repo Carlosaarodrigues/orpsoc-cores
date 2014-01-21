@@ -34,7 +34,8 @@
 
 #ifdef BOOTROM_JUMP
 #define wishbone_ram orpsoc_top->v->wb_bfm_memory0 //write program in main memory
-#elif BOOTROM_LOAD
+#endif
+#ifdef BOOTROM_LOAD
 #define wishbone_ram orpsoc_top->v->flash_spi->flash //write program in flash SPI
 #endif
 

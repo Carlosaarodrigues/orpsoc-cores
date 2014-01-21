@@ -1,11 +1,13 @@
 CAPI=1
 [main]
 description = "OpenCores SPI Core"
-depend = fifo4	#comment if you use svn version
+#comment if you use svn version
+depend = fifo4	
 
 [verilog]
 src_files =
-# fifo4.v	#comment if you use  github version
+#comment if you use  github version
+# fifo4.v	
  simple_spi_top.v
 
 #[provider]
