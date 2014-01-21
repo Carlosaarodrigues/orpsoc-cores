@@ -168,7 +168,7 @@ module i2c_master_top
 	// generate acknowledge output signal ...
 	always @(posedge wb_clk_i)
     // ... because timing is always honored.
-    wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o & status;
+    wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o;
 
 	// assign DAT_O
 	always @(posedge wb_clk_i)
@@ -190,6 +190,10 @@ module i2c_master_top
 	         3'b100 : //read last word (read + Nack + stop)
 			begin
 				wb_dat_o <= rxr;
+			end
+		 3'b111 :
+			begin
+				wb_dat_o <= sr;
 			end
 
 	   	 default: wb_dat_o <= rxr;
@@ -245,6 +249,11 @@ module i2c_master_top
 	         3'b100 : //read last word (read + Nack + stop)
 			begin
 			 	cr <= 8'b01101000;
+			end
+
+	         3'b111 : //read last word (read + Nack + stop)
+			begin
+			 	cr <= 8'b00000001;
 			end
 
 	         default: ;

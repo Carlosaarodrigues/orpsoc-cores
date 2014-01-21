@@ -492,7 +492,7 @@ module i2c_master_byte_ctrl
  			   end //!if (stop)
 
 	                   // assign ack_out output to bit_controller_rxd (contains last received bit)
-	                   ack_out <= core_rxd;
+	                   //ack_out <= core_rxd;
 			end //!	if(1'b0)
 	             end
 	           else
