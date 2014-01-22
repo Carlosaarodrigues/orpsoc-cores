@@ -120,29 +120,8 @@ module simple_spi #(
   // Wishbone interface
   wire wb_acc = cyc_i & stb_i;       // WISHBONE access
   wire wb_wr = wb_acc & we_i;       // WISHBONE write access
-  reg wb_re;      // WISHBONE read access
+  wire wb_re = wb_acc & ~we_i;      // WISHBONE read access
   reg sig_re;
-
-
-  always @(posedge clk_i)
-    if (rst_i || ~|ss_r)
-      begin
-	wb_re <= 1'b0;
-	sig_re <= 1'b0;
-      end
-     else if ( ~wb_re )
-	begin
-	wb_re <= wb_acc & ~we_i  & ~|state;
-	sig_re <= sig_re|wb_acc & ~we_i  & ~|state;
-	end
-     else if ( wb_re && ack_o)
-	begin
-	wb_re <= 1'b0;
-	end
-     else if ( ss_o )
-	begin
-	sig_re <= 1'b0;
-	end
 
   // dat_i
   always @(posedge clk_i)
@@ -151,11 +130,15 @@ module simple_spi #(
           spcr <= 8'h10;  // set master bit
           sper <= 8'h00;
           ss_r <= 0;
+	  sig_re <= 1'b0;
       end
-    else if (wb_wr || wb_re)
+    else if (wb_wr)
       begin
         if (adr_i == 3'b000)
           spcr <= dat_i | 8'h10; // always set master bit
+
+        if (adr_i == 3'b001)
+          sig_re <= dat_i[0]; 	// read SPI
 
         if (adr_i == 3'b011)
           sper <= dat_i;
@@ -163,6 +146,10 @@ module simple_spi #(
 	if (adr_i == 3'b100)
           ss_r <= dat_i[SS_WIDTH-1:0];
       end
+     else if ( ss_o )
+	begin
+	sig_re <= 1'b0;
+	end
 
 
   // write fifo
