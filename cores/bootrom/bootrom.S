@@ -107,12 +107,18 @@ spi_init:
 	l.or 	r3, r0, r0
 #endif	
 	l.sb SPI_SPDR(r4), r3
+	l.ori 	r3, r0, 0x01
+	l.sb SPI_SPSR(r4), r3
 	l.movhi r6, 0
 	l.movhi r7, 0x01
 	l.ori	r7,r7,0XFFFF	//20
 
 copy:	
 	l.nop
+	l.lbz 	r3, SPI_SPDR(r4)  /*read spi status*/
+	l.andi	r8, r3,0x0001
+	l.sfeq  r0,r8		
+	l.bnf 	copy		 /*spi dont have data for read*/
 	l.lbz 	r3, SPI_SPDR(r4) /* Read a byte into r3 */
 	l.add 	r8, r1, r6       /* Calculate store address */
 	l.sb 	0(r8), r3        /* Write byte to memory */
