@@ -425,6 +425,7 @@ int sc_main(int argc, char *argv[])
 				 TIMESCALE_UNIT);
 			gSimRunning = 0;
 			sc_stop();
+			cout<<"2"<<endl;
 #ifdef MONITOR
 			// Print performance summary
 			monitor->perfSummary();
@@ -439,12 +440,15 @@ int sc_main(int argc, char *argv[])
 				// Open the trace file
 				verilatorVCDFile->open(vcdDumpFile.c_str());
 				dumping_now = 1;
+			cout<<"3"<<endl;
+
 			}
 
 			if (dumping_now) {
 				// Step the sim and generate the trace
 				// Execute until we stop
 				while (!Verilated::gotFinish()) {
+			cout<<"4"<<endl;
 					// gSimRunning value changed by the
 					// monitor when sim should finish.
 #ifndef MONITOR
@@ -523,9 +527,12 @@ int sc_main(int argc, char *argv[])
 		// Ideally a "l.nop 1" will terminate the simulation gracefully.
 		// Need to step at clock period / 4, otherwise model appears to skip the 
 		// monitor and logging functions sometimes (?!?)
-		while (gSimRunning)
+		while (gSimRunning){
 			sc_start(BENCH_CLK_HALFPERIOD / 2, TIMESCALE_UNIT);
+		        instruction = accessor->getWbInsn();
+			if (instruction == NOP_EXIT) {gSimRunning = 0;} 
 		//sc_start();
+		}
 	}
 
 
