@@ -425,7 +425,7 @@ int sc_main(int argc, char *argv[])
 				 TIMESCALE_UNIT);
 			gSimRunning = 0;
 			sc_stop();
-			cout<<"2"<<endl;
+
 #ifdef MONITOR
 			// Print performance summary
 			monitor->perfSummary();
@@ -440,7 +440,7 @@ int sc_main(int argc, char *argv[])
 				// Open the trace file
 				verilatorVCDFile->open(vcdDumpFile.c_str());
 				dumping_now = 1;
-			cout<<"3"<<endl;
+
 
 			}
 
@@ -448,7 +448,7 @@ int sc_main(int argc, char *argv[])
 				// Step the sim and generate the trace
 				// Execute until we stop
 				while (!Verilated::gotFinish()) {
-			cout<<"4"<<endl;
+
 					// gSimRunning value changed by the
 					// monitor when sim should finish.
 #ifndef MONITOR
