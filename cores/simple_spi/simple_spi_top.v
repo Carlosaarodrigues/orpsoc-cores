@@ -122,6 +122,7 @@ module simple_spi #(
   wire wb_wr = wb_acc & we_i;       // WISHBONE write access
   wire wb_re = wb_acc & ~we_i;      // WISHBONE read access
   reg sig_re;
+  wire read_spi;
 
   // dat_i
   always @(posedge clk_i)
@@ -138,13 +139,13 @@ module simple_spi #(
           spcr <= dat_i | 8'h10; // always set master bit
 
         if (adr_i == 3'b001)
-          sig_re <= dat_i[0]; 	// read SPI
+          sig_re <= dat_i[0]; 	// faster read SPI
 
         if (adr_i == 3'b011)
           sper <= dat_i;
 
 	if (adr_i == 3'b100)
-          ss_r <= dat_i[SS_WIDTH-1:0];
+          ss_r <= dat_i[SS_WIDTH-1:0]; //select slave
       end
      else if ( ss_o )
 	begin
@@ -174,8 +175,13 @@ module simple_spi #(
   always @(posedge clk_i)
     if (rst_i)
       ack_o <= 1'b0;
-    else 
+    else if(wb_re) 
+      ack_o <= wb_acc & !ack_o & ~rfempty ;
+    else
       ack_o <= wb_acc & !ack_o;
+
+  // read spi
+  assign read_spi = sig_re && ~rffull || wb_re && ~rfre && ~ack_o;
 
   // decode Serial Peripheral Control Register
   wire       spie = spcr[7];   // Interrupt enable bit
@@ -275,6 +281,7 @@ module simple_spi #(
   // generate clock enable signal
   wire ena = ~|clkcnt;
 
+
   // transfer statemachine
   always @(posedge clk_i)
     if (~spe | rst_i )
@@ -299,8 +306,8 @@ module simple_spi #(
                   sck_o <= cpol;   // set sck
 		  ss_o = ~ss_r;
 
-                  if (~wfempty || (sig_re && ~rffull)) begin
-		    if (~sig_re) wfre  <= 1'b1;
+                  if (~wfempty || read_spi) begin
+		    if (~read_spi) wfre  <= 1'b1;
                     state <= 3'b001;
                     if (cpha) sck_o <= ~sck_o;
                   end
@@ -320,7 +327,7 @@ module simple_spi #(
                 if (~|bcnt) begin
                   state <= 3'b100;
                   sck_o <= cpol;
-                  if (sig_re)rfwe  <= 1'b1;
+                  rfwe  <= 1'b1;
                 end else begin
                   state <= 3'b001;
                   sck_o <= ~sck_o;

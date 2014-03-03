@@ -58,5 +58,5 @@ include_files =
  bench/verilator/UartSC.h
  bench/verilator/JtagServerSC.h
  bench/verilator/UartSC.h
-define_file = or1200-generic/bench/verilog/include/orpsoc-defines.v
+define_files = or1200-generic/bench/verilog/include/orpsoc-defines.v
 tb_toplevel   = bench/verilator/OrpsocMain.cpp
