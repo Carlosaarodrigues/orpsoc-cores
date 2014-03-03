@@ -37,7 +37,7 @@
 #define UART_SC_STDIN_ENABLE
 
 // input and output in fifos
-#define UART_FIFO
+//#define UART_FIFO
 
 #ifdef UART_SC_STDIN_ENABLE
 #include <termios.h>
@@ -158,9 +158,9 @@ void UartSC::driveRx()
 				cout << "UartSC::driveRX got " << c << endl;
 #endif
 				rx_state++;
-				cout <<c<<endl;
 			}
-#endif
+#endif  //#ifdef UART_FIFO
+
 #ifndef UART_FIFO		
 			if (kbhit())
 			{
@@ -171,7 +171,7 @@ void UartSC::driveRx()
 #endif
 				rx_state++;				
 			}
-#endif
+#endif  //#ifndef UART_FIFO
 			wait(1000000, SC_NS);
 
 		}
