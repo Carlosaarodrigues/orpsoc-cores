@@ -1,0 +1,12 @@
+CAPI=1
+[main]
+description = memory spi
+depend =
+ wb_memory
+
+[verilog]
+src_files =
+ memory_spiTop.v
+
+
+
