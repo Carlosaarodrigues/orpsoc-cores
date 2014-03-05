@@ -121,7 +121,8 @@ module simple_spi #(
   wire wb_acc = cyc_i & stb_i;       // WISHBONE access
   wire wb_wr = wb_acc & we_i;       // WISHBONE write access
   wire wb_re = wb_acc & ~we_i;      // WISHBONE read access
-  reg sig_re;
+  reg fast_read;
+  reg read;
   wire read_spi;
 
   // dat_i
@@ -131,7 +132,8 @@ module simple_spi #(
           spcr <= 8'h10;  // set master bit
           sper <= 8'h00;
           ss_r <= 0;
-	  sig_re <= 1'b0;
+	  fast_read <= 1'b0;
+	  read <= 1'b0;
       end
     else if (wb_wr)
       begin
@@ -139,8 +141,10 @@ module simple_spi #(
           spcr <= dat_i | 8'h10; // always set master bit
 
         if (adr_i == 3'b001)
-          sig_re <= dat_i[0]; 	// faster read SPI
-
+	  begin
+              fast_read <= dat_i[0]; 	// faster read SPI
+              read <= dat_i[1];		//read SPI
+	  end
         if (adr_i == 3'b011)
           sper <= dat_i;
 
@@ -149,8 +153,11 @@ module simple_spi #(
       end
      else if ( ss_o )
 	begin
-	sig_re <= 1'b0;
+	fast_read <= 1'b0;
+	read <= 1'b0;
 	end
+     else
+	read <= 1'b0;
 
 
   // write fifo
@@ -181,7 +188,7 @@ module simple_spi #(
       ack_o <= wb_acc & !ack_o;
 
   // read spi
-  assign read_spi = sig_re && ~rffull || wb_re && ~rfre && ~ack_o;
+  assign read_spi = fast_read && ~rffull || read && ~rfre ;
 
   // decode Serial Peripheral Control Register
   wire       spie = spcr[7];   // Interrupt enable bit
