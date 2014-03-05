@@ -75,14 +75,6 @@ module orpsoc_top #(
 	inout		i2c1_scl_io
 `endif
 
-`ifdef SPI0
-,    output          spi0_sck_o,
-    output          spi0_mosi_o,
-    input           spi0_miso_i
- `ifdef SPI0_SLAVE_SELECTS
-,    output          spi0_ss_o
- `endif
-`endif
 
 `ifdef SPI1
 ,    output          spi1_sck_o,
@@ -857,6 +849,26 @@ wb_data_resize wb_data_resize_spi0 (
 	.wbs_err_i	(wb8_s2m_spi0_err),
 	.wbs_rty_i	(wb8_s2m_spi0_rty)
 );
+`endif
+////////////////////////////////////////////////////////////////////////
+//
+// SPI0 SLAVE FLASH
+//
+////////////////////////////////////////////////////////////////////////
+`ifdef SPI0_SLAVE_SELECTS
+
+  wire flash_miso;
+
+slave_spiTop flash_spi(
+.clk_i	( wb_clk ),
+.rst_i	( wb_rst ),
+.sck_i	( spi0_sck_o ), // serial clock output
+.ss_i	( spi0_ss_o ), // slave select (active low)
+.mosi_i	( spi0_mosi_o ), // MasterOut SlaveIN
+.miso_o	( flash_miso )); // MasterIn SlaveOut
+
+       assign spi0_miso_i = spi0_ss_o ? 1'bz : flash_miso;
+
 `endif
 
 `ifdef SPI1

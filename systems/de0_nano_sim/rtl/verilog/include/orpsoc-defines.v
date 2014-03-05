@@ -45,8 +45,8 @@
 //`define GPIO0
 //`define I2C0
 //`define I2C1
-//`define SPI0_SLAVE_SELECTS
-//`define SPI0
+`define SPI0_SLAVE_SELECTS
+`define SPI0
 //`define SPI1_SLAVE_SELECTS
 //`define SPI1
 //`define SPI2_SLAVE_SELECTS

@@ -10,7 +10,9 @@ depend =
  uart16550
  vlog_tb_utils
  wb_intercon
- ram_wb 
+ ram_wb
+ simple_spi
+ memory_spi 
 
 simulators =
  icarus
