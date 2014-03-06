@@ -102,6 +102,7 @@ module simple_spi #(
   reg  [7:0]          sper;       // Serial Peripheral Extension Register
   reg  [7:0]          treg;       // Transmit Register
   reg  [SS_WIDTH-1:0] ss_r;       // Slave Select Register
+  reg [SS_WIDTH-1:0] temp_ss_o; 
 
   // fifo signals
   wire [7:0] rfdout;
@@ -282,7 +283,7 @@ module simple_spi #(
         4'b1001: clkcnt <= 12'h1ff; // 1024
         4'b1010: clkcnt <= 12'h3ff; // 2048
         4'b1011: clkcnt <= 12'h7ff; // 4096
-	default: espr = 4'b0000;
+	default: clkcnt <= 12'h0;
       endcase
 
   // generate clock enable signal
@@ -311,7 +312,7 @@ module simple_spi #(
                   bcnt  <= 3'h7;   // set transfer counter
                   treg  <= wfdout; // load transfer register
                   sck_o <= cpol;   // set sck
-		  ss_o = ~ss_r;
+		  temp_ss_o <= ~ss_r;
 
                   if (~wfempty || read_spi) begin
 		    if (~read_spi) wfre  <= 1'b1;
@@ -351,6 +352,7 @@ module simple_spi #(
       end
 
   assign mosi_o = treg[7];
+  assign ss_o = temp_ss_o;
 
 
   // count number of transfers (for interrupt generation)
