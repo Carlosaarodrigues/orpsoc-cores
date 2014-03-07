@@ -523,9 +523,12 @@ int sc_main(int argc, char *argv[])
 		// Ideally a "l.nop 1" will terminate the simulation gracefully.
 		// Need to step at clock period / 4, otherwise model appears to skip the 
 		// monitor and logging functions sometimes (?!?)
-		while (gSimRunning)
+		while (gSimRunning){
 			sc_start(BENCH_CLK_HALFPERIOD / 2, TIMESCALE_UNIT);
+		        instruction = accessor->getWbInsn();
+			if (instruction == NOP_EXIT) {gSimRunning = 0;} 
 		//sc_start();
+		}
 	}
 
 

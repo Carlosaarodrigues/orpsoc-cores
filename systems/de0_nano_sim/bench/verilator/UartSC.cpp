@@ -22,6 +22,10 @@
 
 // $Id: $
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <iostream>
 #include <iomanip>
 
@@ -30,7 +34,10 @@
 //#define UART_SC_DEBUG
 
 // Keep disabled for now, to stop any portability problems cropping up.
-//#define UART_SC_STDIN_ENABLE
+#define UART_SC_STDIN_ENABLE
+
+// input and output in fifos
+//#define UART_FIFO
 
 #ifdef UART_SC_STDIN_ENABLE
 #include <termios.h>
@@ -131,7 +138,10 @@ void UartSC::nonblock(int state)
 void UartSC::driveRx()
 {
 	static char c;
-
+#ifdef UART_FIFO
+	int f, nbit;
+	f = open ("/home/carlos/projecto/orpsoc/orpsoc/test/TX",O_RDONLY | O_NONBLOCK);
+#endif
 	UartSC::nonblock(NB_ENABLE);
 
 	while(1)
@@ -141,8 +151,17 @@ void UartSC::driveRx()
 
 			// Do we have a character on input?
 			//c=cin.peek();
+#ifdef UART_FIFO
+			nbit=read(f,&c,sizeof(char));
+			if (nbit != -1){
+#ifdef UART_SC_DEBUG
+				cout << "UartSC::driveRX got " << c << endl;
+#endif
+				rx_state++;
+			}
+#endif  //#ifdef UART_FIFO
 
-			
+#ifndef UART_FIFO		
 			if (kbhit())
 			{
 				
@@ -152,7 +171,7 @@ void UartSC::driveRx()
 #endif
 				rx_state++;				
 			}
-
+#endif  //#ifndef UART_FIFO
 			wait(1000000, SC_NS);
 
 		}
@@ -203,6 +222,11 @@ void UartSC::driveRx()
 // Maybe do this with threads instead?!
 void UartSC::checkTx()
 {
+
+#ifdef UART_FIFO
+	int f;
+	f = open ("/home/carlos/projecto/orpsoc/orpsoc/test/RX",O_WRONLY | O_NONBLOCK);
+#endif
 	while(1){
 
 		// Check the number of bits received
@@ -262,7 +286,12 @@ void UartSC::checkTx()
 				// cout'ing the char didn't work for some 
 				// systems.
 				//cout << current_char;
+#ifndef UART_FIFO
 				printf("%c", current_char);
+#endif
+#ifdef UART_FIFO
+				write(f,&current_char,sizeof(char));
+#endif			
 				
 				bits_received = 0;
 			}
